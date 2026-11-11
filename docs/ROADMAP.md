@@ -26,14 +26,16 @@ Status: in progress.
 | Theme tokens and seasonal palettes | Done, tested | Palettes are a first pass; font not chosen |
 | Combat lockdown queue | Done, tested | |
 | Compat layer and hidden-value guard | Done, tested against a stub | **Needs verifying in the live client** |
-| Slash commands: help, move, test, safe, bug, modules, enable, disable | Done, tested | `move` and `test` only flip state until the UI below exists |
+| Slash commands: config, help, move, test, safe, bug, undo, modules, enable, disable | Done, tested | |
 | First in-game load on client 1.60.1 | **To do** | Nothing has been run in the game yet |
 | API reference generated from the live client (`/apiexport`) into `tools/api/` | To do | Needed before any frame work |
-| Widget kit: panel, button, checkbox, slider, dropdown, scroll list, text input, all themed | To do | Everything visible builds on this |
-| Settings window: resizable, searchable, simple/advanced, pinned pages | To do | Pages come from each module's `settings` declaration |
-| Settings undo and change history | To do | Record changes at the DB layer |
-| Layout mode: drag handles, grid snap, saved positions, combat queue | To do | |
-| Mover registry so any module can make its frame draggable | To do | |
+| Widget kit: panel, button, checkbox, slider, picker, scroll area, text input, all themed | Written, **not yet run in game** | The picker cycles through choices; a real dropdown list and rounded corners are still to do |
+| Settings window: resizable, searchable, simple/advanced, pinned pages | Written, **not yet run in game** | Logic tested against the stub. Pages come from each module's `settings` declaration |
+| Settings undo and change history | Done, tested | Session only; `/pui undo` and the History page |
+| Profile management in the window: create, copy, delete, import, export | To do | The window can only switch profile today |
+| Layout mode: drag handles, grid snap, saved positions, combat queue | Written, **not yet run in game** | Logic tested against the stub. Keyboard nudging is still to do |
+| Mover registry so any module can make its frame draggable | Done, tested | `self:RegisterMover` |
+| Sandbox module: movable panel, settings page, self-break button | Written, **not yet run in game** | The deliberately broken test module for the phase gate. `/pui enable sandbox` |
 | Test mode plumbing (sample units and data) | To do | |
 | Bug report window (copyable text) and debug/capability view | To do | `/pui bug` prints to chat today |
 | First-login setup wizard: season, frame and nameplate style, placement | To do | Last, once there is something to place |

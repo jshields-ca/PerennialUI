@@ -16,6 +16,7 @@ globals = {
     "PerennialUIDB",
     "PerennialUICharDB",
     "SlashCmdList",
+    "UISpecialFrames",
     "SLASH_PERENNIALUI1",
     "SLASH_PERENNIALUI2",
 }
@@ -28,6 +29,7 @@ read_globals = {
     "GetRealmName",
     "GetTime",
     "InCombatLockdown",
+    "UIParent",
     "UnitName",
     "debugstack",
     "issecretvalue",

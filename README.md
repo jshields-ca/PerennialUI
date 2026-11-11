@@ -43,7 +43,9 @@ In game, `/pui` (or `/perennial`) lists the commands:
 
 | Command | Does |
 | --- | --- |
+| `/pui` | Open the settings window |
 | `/pui move` | Toggle layout mode to drag frames |
+| `/pui undo` | Undo the last settings change |
 | `/pui test` | Toggle test mode (sample data in frames) |
 | `/pui safe` | Load with every module off, to rule Perennial in or out |
 | `/pui modules` | List modules and their state |

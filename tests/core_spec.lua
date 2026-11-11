@@ -185,7 +185,7 @@ describe("Slash commands", function()
     end)
 
     it("lists the required subcommands in help", function()
-        _G.SlashCmdList.PERENNIALUI("")
+        _G.SlashCmdList.PERENNIALUI("help")
         for _, name in ipairs({ "help", "move", "test", "safe", "bug" }) do
             assert.is_true(stub.printedContains("/pui " .. name .. " "))
         end

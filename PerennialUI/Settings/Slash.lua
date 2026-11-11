@@ -2,7 +2,6 @@
 -- Slash commands: /pui and /perennial.
 local _, ns = ...
 
-local Combat = ns.Combat
 local DB = ns.DB
 local Events = ns.Events
 local Modules = ns.Modules
@@ -27,7 +26,7 @@ function Slash.Run(line)
     local name, args = (line or ""):match("^%s*(%S*)%s*(.-)%s*$")
     name = name:lower()
     if name == "" then
-        name = "help"
+        name = "config"
     end
     local command = commands[name]
     if not command then
@@ -44,14 +43,26 @@ Slash.Register("help", "list commands", function()
     end
 end)
 
+Slash.Register("config", "open or close the settings window (same as /pui)", function()
+    ns.SettingsWindow.Toggle()
+end)
+
 Slash.Register("move", "toggle layout mode to drag frames", function()
-    if not ns.state.layoutMode and Combat.InLockdown() then
-        ns.Print("Layout mode is not available in combat.")
+    local ok, reason = ns.Layout.Toggle()
+    if not ok then
+        ns.Print(reason)
         return
     end
-    ns.state.layoutMode = not ns.state.layoutMode
-    Events.Fire("PUI_LAYOUT_MODE", ns.state.layoutMode)
     ns.Print("Layout mode " .. (ns.state.layoutMode and "on." or "off."))
+end)
+
+Slash.Register("undo", "undo the last settings change", function()
+    local entry = ns.Settings.Undo()
+    if entry then
+        ns.Print("Undid the change to " .. entry.label .. ".")
+    else
+        ns.Print("Nothing to undo.")
+    end
 end)
 
 Slash.Register("test", "toggle test mode (sample data in frames)", function()

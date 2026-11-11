@@ -48,7 +48,12 @@ One hidden frame registers game events once, however many modules want them, and
 | `PUI_MODULE_STATE` | id, state, reason | A module was enabled, disabled or paused |
 | `PUI_PROFILE_CHANGED` | name | The active profile changed or was replaced |
 | `PUI_THEME_CHANGED` | | Season or shape changed |
-| `PUI_LAYOUT_MODE` | on | `/pui move` toggled |
+| `PUI_LAYOUT_MODE` | on | Layout mode turned on or off |
+| `PUI_LAYOUT_MOVED` | id, x, y | A frame was moved in layout mode |
+| `PUI_SETTING_CHANGED` | page, key, value | A setting changed (also on undo) |
+| `PUI_SETTINGS_MODE` | advanced | Simple/advanced mode switched |
+| `PUI_SETTINGS_PAGES` | | A page was added, or pins changed |
+| `PUI_MODULE_REGISTERED` | id | A module registered |
 | `PUI_TEST_MODE` | on | `/pui test` toggled |
 
 ### DB (`Core/DB.lua`)
@@ -71,10 +76,22 @@ One hidden frame registers game events once, however many modules want them, and
 
 Client detection (`isForever`, `isClassicEra`) and `Compat.Number(value, fallback)`, the guard for values the client may hide in combat. Any API that differs between clients gets a wrapper here.
 
+### Settings (`Settings/Registry.lua`, `Pages.lua`, `Window.lua`)
+
+The registry holds pages of options and is the only code that reads or writes their values. It validates every change, records it in a session history for undo, and answers searches. The window draws whatever the registry describes: a page list (right click pins a page), a search box, a simple/advanced switch and an undo button. Modules get a page by declaring `settings`; the core's own pages are General, Modules, Profiles and History.
+
+### Layout (`Layout/Layout.lua`)
+
+Modules register movable frames. A position is the frame's centre offset from the screen centre, saved per profile and applied through the combat queue. Layout mode draws a grid and a drag handle over each registered frame; dropping a handle snaps to the grid and saves. Layout mode refuses to start in combat and closes when combat starts.
+
+### Widgets (`UI/Widgets.lua`)
+
+Themed building blocks: text, panel, button, checkbox, slider, picker, text input, scroll area. Each restyles itself when the season changes. Corners are square for now: rounding needs texture assets that do not exist yet.
+
 ## Testing
 
-The core has no dependency on a running client. `tests/helpers/loader.lua` reads the TOC and loads each file against `tests/stub/wow.lua`, a minimal fake API. UI code that needs real frames is tested in game; keep its logic in plain functions so the logic can still be tested here.
+The core has no dependency on a running client. `tests/helpers/loader.lua` reads the TOC and loads each file against `tests/stub/wow.lua`, a minimal fake API. The stub's frames record what is done to them and ignore methods they do not know, so tests prove the logic of UI code but not that the client API calls are right. UI code is still tested in game.
 
 ## Not built yet
 
-Settings window, layout mode UI, frame designer, first-login wizard, spec-based profile switching, and every visible module. See [ROADMAP.md](ROADMAP.md).
+Frame designer, first-login wizard, spec-based profile switching, profile management in the window (create, copy, delete, import, export), a real dropdown list, and every visible module except the sandbox. See [ROADMAP.md](ROADMAP.md).
