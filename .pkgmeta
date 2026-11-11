@@ -1,0 +1,26 @@
+package-as: PerennialUI
+
+# The addon lives in PerennialUI/ inside the repo; lift it to the zip root.
+move-folders:
+  PerennialUI/PerennialUI: PerennialUI
+
+ignore:
+  - tests
+  - tools
+  - docs
+  - branding
+  - .github
+  - .busted
+  - .luacheckrc
+  - .luarc.json
+  - .editorconfig
+  - .gitattributes
+  - CLAUDE.md
+  - CONTRIBUTING.md
+  - CODE_OF_CONDUCT.md
+  - README.md
+  - "PerennialUI/*/README.md"
+
+manual-changelog:
+  filename: CHANGELOG.md
+  markup-type: markdown
