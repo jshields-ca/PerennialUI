@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640" role="img" aria-label="Perennial UI social header, option A">
+  <rect width="1280" height="640" fill="#F2E8D5"/>
+  <g fill="none" stroke="#231A14" stroke-linecap="round">
+    <circle cx="250" cy="400" r="380" stroke-width="30"/>
+    <circle cx="254" cy="400" r="326" stroke-width="8"/>
+    <circle cx="259" cy="397" r="276" stroke-width="10"/>
+    <circle cx="263" cy="395" r="222" stroke-width="7"/>
+    <circle cx="266" cy="392" r="172" stroke-width="10"/>
+    <circle cx="268" cy="390" r="122" stroke-width="7"/>
+    <circle cx="270" cy="388" r="76" stroke-width="9"/>
+    <circle cx="271" cy="387" r="36" stroke-width="7"/>
+    <path d="M330 430 L520 570" stroke-width="8"/>
+  </g>
+  <g stroke="#F2E8D5" stroke-linejoin="round" stroke-linecap="round" fill="#F2E8D5" stroke-width="30">
+    <path d="M271 387 C274 300 250 240 256 120" fill="none" stroke-width="52"/>
+    <path d="M254 222 C184 216 138 164 132 100 C202 106 248 154 254 222 Z"/>
+    <path d="M256 166 C316 146 364 92 364 30 C300 46 258 98 256 166 Z"/>
+  </g>
+  <g fill="#5F8F3E">
+    <path d="M271 387 C274 300 250 240 256 120" fill="none" stroke="#5F8F3E" stroke-width="22" stroke-linecap="round"/>
+    <path d="M254 222 C184 216 138 164 132 100 C202 106 248 154 254 222 Z"/>
+    <path d="M256 166 C316 146 364 92 364 30 C300 46 258 98 256 166 Z"/>
+  </g>
+  <circle cx="271" cy="387" r="13" fill="#C4552B"/>
+  <g font-family="Georgia, 'Times New Roman', serif" fill="#231A14">
+    <text x="660" y="300" font-size="84" font-weight="bold" letter-spacing="-2">Perennial UI</text>
+    <text x="663" y="352" font-size="30" font-style="italic">The interface that grows back.</text>
+  </g>
+  <rect x="663" y="392" width="64" height="8" fill="#C4552B"/>
+  <g font-family="Consolas, 'Courier New', monospace" font-size="21" fill="#231A14">
+    <text x="663" y="446">open source  ·  modular  ·  WoW: Forever</text>
+  </g>
+</svg>
