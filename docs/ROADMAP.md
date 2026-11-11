@@ -126,6 +126,7 @@ Classic Era, Hardcore and Season of Discovery use a different API. The shims go 
 | 2026-11-11 | Own small core instead of Ace3. Single-purpose libraries may be vendored when needed |
 | 2026-11-11 | Pull requests merge automatically once CI passes and a code owner approves. Contributors become code owners of the modules they maintain |
 | 2026-11-11 | Seasons (spring, summer, autumn, winter) are the built-in theme system |
+| 2026-11-11 | Logo is the growth-rings mark (a cut stump with a new shoot); sources in `branding/` |
 | 2026-11-11 | One addon with internal modules for now; the repo layout allows sub-addons later |
 
 ## Open questions
@@ -135,6 +136,5 @@ Classic Era, Hardcore and Season of Discovery use a different API. The shims go 
 - **`/pui`:** check that no popular addon already uses this slash command.
 - **Shape language:** soft or crisp as the default? It is a token either way.
 - **Font:** pick an openly licensed face that is distinct from other Forever UIs, and check its licence.
-- **Logo and artwork:** choose from the options in `branding/`.
 - **Outreach:** whether to tell the authors of the existing closed UIs that this project exists and is independent.
 - **Spec switching:** what profile auto-switch should key on in a Classic-content client.

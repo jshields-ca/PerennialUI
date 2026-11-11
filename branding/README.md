@@ -1,13 +1,19 @@
-# Branding options
+# Branding
 
-Three candidate directions for the logo and the social header. Nothing here is final; pick one (or parts of several) and the rest gets deleted. Open `preview.html` in a browser to see them side by side at several sizes.
+The Perennial UI mark is a cut stump with a new shoot growing from its centre: it was cut down and it grew back.
 
-| Option | Icon | Header | Idea |
-| --- | --- | --- | --- |
-| A. Growth rings | `a-rings-icon.svg` | `a-rings-header.svg` | A cut stump with a new shoot from its centre: it grew back |
-| B. Turning seasons | `b-seasons-icon.svg` | `b-seasons-header.svg` | Four leaves in the four theme colours, turning like a wheel |
-| C. Leaf P in layout handles | `c-frame-icon.svg` | `c-frame-header.svg` | A rooted letter P with a leaf for a bowl, inside layout-mode handles |
+| File | Use |
+| --- | --- |
+| `logo.svg` | Source for the icon |
+| `logo-512.png`, `logo-64.png` | Icon exports (project pages, avatars) |
+| `header.svg` | Source for the wide header |
+| `social-preview.png` | 1280 by 640 header for the README and GitHub's social preview |
 
-Shared palette: paper `#F2E8D5`, ink `#231A14`, spring `#7FA84F`, summer `#E0A52E`, autumn `#C4552B`, winter `#6E93B0`.
+Palette: paper `#F2E8D5`, ink `#231A14`, shoot green `#5F8F3E`, autumn `#C4552B`.
 
-All artwork was drawn for this project as hand-written SVG and is licensed with the rest of the repository. Wordmarks use a system serif as a stand-in. Once a direction and an openly licensed font are chosen, the text is converted to outlines and exported to PNG (GitHub's social preview needs a 1280 by 640 PNG) and to the texture format the game needs for the addon icon.
+The artwork was drawn for this project as hand-written SVG and is licensed with the rest of the repository. If you change an SVG, re-export its PNGs at the sizes above.
+
+Still to do:
+
+- The wordmark in `header.svg` is set in Georgia as a stand-in. Once an openly licensed font is chosen, reset it and convert the text to outlines.
+- The in-game addon icon needs a TGA or BLP export placed in `PerennialUI/Media/` and referenced from the TOC.

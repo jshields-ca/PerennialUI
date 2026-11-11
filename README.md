@@ -1,5 +1,7 @@
 # Perennial UI
 
+![Perennial UI: the interface that grows back](branding/social-preview.png)
+
 **An open-source, modular interface for World of Warcraft: Forever, built from scratch by the community.**
 
 [![CI](https://github.com/jshields-ca/PerennialUI/actions/workflows/ci.yml/badge.svg)](https://github.com/jshields-ca/PerennialUI/actions/workflows/ci.yml)
