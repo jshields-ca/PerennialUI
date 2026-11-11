@@ -52,9 +52,11 @@ Add the file to `PerennialUI/PerennialUI.toc` before `Core/Boot.lua`, and add an
 | `title` | no | Name shown to the player. Defaults to `id`. |
 | `defaults` | no | Default settings. `enabled` is reserved. |
 | `enabledByDefault` | no | `false` makes the module opt-in. |
+| `settings` | no | Options for the module's page in the settings window. See below. |
 | `events` | no | Game events to subscribe to while enabled. The value is a function, a method name, or `true` for the method named after the event. |
 | `OnEnable(self)` | no | Start. Runs at login, or when the player turns the module on. |
 | `OnDisable(self)` | no | Stop and undo. Runs when turned off, when paused, and on a profile switch. |
+| `OnSettingChanged(self, key, value, old)` | no | Runs when the player changes one of the module's settings while it is enabled. |
 
 Methods every module gets:
 
@@ -64,9 +66,42 @@ Methods every module gets:
 | `self:UnregisterEvent(event)` | Unsubscribe |
 | `self:Listen(message[, handler])` | Subscribe to an internal `PUI_*` message |
 | `self:RunWhenSafe(key, fn)` | Run now, or after combat if frames are locked |
+| `self:RegisterMover(id, frame, opts)` | Make a frame draggable in layout mode and apply its saved position |
 | `self:IsEnabled()` | True while the module is running |
 | `self:Print(...)` | Chat message prefixed with the module's title |
 | `self.db` | This module's settings in the active profile |
+
+## Settings page
+
+List the module's options in `settings` and it gets a page in the settings window, with search, undo and simple/advanced mode for free. Values are stored in `self.db` under each option's `key`, so give every key a default.
+
+```lua
+settings = {
+    { type = "header", label = "Look" },
+    { key = "scale", type = "range", label = "Scale", min = 0.5, max = 2, step = 0.1 },
+    { key = "showTitle", type = "toggle", label = "Show title", desc = "Second line of help text." },
+    { key = "style", type = "select", label = "Style", advanced = true,
+      values = { { value = "bars", label = "Bars" }, { value = "orbs", label = "Orbs" } } },
+    { key = "reset", type = "action", label = "Reset", func = function() end },
+},
+```
+
+| Type | Extra fields |
+| --- | --- |
+| `toggle` | |
+| `range` | `min`, `max`, `step`. Values are clamped and snapped to the step. |
+| `select` | `values`: a list of `{ value, label }`, or a function returning one |
+| `action` | `func`: runs inside the safety net |
+| `info` | `text`: a string, or a function returning one |
+| `header` | Only a `label` |
+
+Any option can set `advanced = true` to hide it in simple mode, and `get` / `set` functions to store its value somewhere other than `self.db`.
+
+## Movable frames
+
+Call `self:RegisterMover("myframe", frame, { title = "My frame", x = 0, y = -200 })` in `OnEnable`. `x` and `y` are the default position of the frame's centre, measured from the centre of the screen. The saved position is applied at once, and again whenever the player drags the handle in layout mode. Movers are removed automatically when the module stops, so register again on the next `OnEnable`. If you change the frame's scale, call `ns.Layout.Apply("myframe")` afterwards.
+
+`PerennialUI/Modules/Sandbox/Sandbox.lua` is a complete small example of all of this.
 
 ## Rules
 

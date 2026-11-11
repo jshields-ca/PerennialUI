@@ -94,6 +94,10 @@ function Theme.Radius()
     return tokens.radius[tokens.shape] or 0
 end
 
+function Theme.GetShape()
+    return tokens.shape
+end
+
 function Theme.GetSeason()
     return current
 end

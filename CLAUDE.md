@@ -25,8 +25,10 @@ Perennial UI is a GPL-3.0-or-later interface replacement for World of Warcraft: 
 PerennialUI/            the addon; PerennialUI.toc lists load order
   Core/                 Init, Safety, Events, Serialize, DB, Theme, Combat, Modules, Boot
   Compat/               client differences and hidden-value guards
-  Settings/             slash commands (settings window to come)
-  Modules/              one folder per feature module
+  Settings/             Registry (option data, undo, search), Pages, Window, Slash
+  UI/                   Widgets: themed building blocks
+  Layout/               movers and layout mode
+  Modules/              one folder per feature module (Sandbox is the worked example)
   Media/  Libs/         openly licensed assets and vendored libraries
 tests/                  busted specs; tests/stub/wow.lua fakes the client API
 tools/                  check-files.sh, link scripts
@@ -43,6 +45,7 @@ docs/                   ARCHITECTURE.md, MODULES.md, ROADMAP.md
 - No hard-coded colours, spacing or fonts: use `ns.Theme`.
 - Saved data goes through `ns.DB`; a change to the saved layout needs a bump of `DB.SCHEMA` and a migration with a test.
 - Every module has an off switch, and off means the default Blizzard element is left as it was.
+- Tests cannot check client API calls: the stub ignores unknown frame methods. Say when UI code has not been run in the game.
 - Core code must stay loadable outside the game: new client API calls need a stub in `tests/stub/wow.lua` and an entry in `.luacheckrc` and `.luarc.json`.
 - Player-facing text is plain and short. No colour codes in the core.
 

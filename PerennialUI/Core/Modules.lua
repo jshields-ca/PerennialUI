@@ -55,6 +55,11 @@ function proto:RunWhenSafe(key, fn)
     return Combat.RunWhenSafe(self.id, key, fn)
 end
 
+--- Make a frame draggable in layout mode. See Layout.Register.
+function proto:RegisterMover(id, frame, opts)
+    return ns.Layout.Register(self.id, id, frame, opts)
+end
+
 function proto:IsEnabled()
     return self.state == "enabled"
 end
@@ -78,6 +83,9 @@ local function teardown(mod)
     local wasEnabled = mod.state == "enabled"
     Events.UnregisterAll(mod.id)
     Combat.Cancel(mod.id)
+    if ns.Layout then
+        ns.Layout.UnregisterAll(mod.id)
+    end
     if wasEnabled and mod.OnDisable then
         Safety.Call(mod.id, mod.OnDisable, mod)
     end
@@ -88,6 +96,7 @@ end
 ---   title     shown to the player (defaults to id)
 ---   defaults  default settings; `enabled` is reserved
 ---   events    { EVENT_NAME = function | "MethodName" | true }
+---   settings  list of options for the module's settings page (see Settings/Registry.lua)
 ---   OnEnable, OnDisable   lifecycle methods
 function Modules.Register(def)
     if type(def) ~= "table" or type(def.id) ~= "string" or not def.id:match("^%a[%w_]*$") then
@@ -104,6 +113,11 @@ function Modules.Register(def)
 
     registry[def.id] = def
     order[#order + 1] = def
+
+    if def.settings and ns.Settings then
+        ns.Settings.RegisterPage({ id = def.id, title = def.title, owner = def.id, options = def.settings })
+    end
+    Events.Fire("PUI_MODULE_REGISTERED", def.id)
 
     -- A module that registers after login (load on demand) starts right away.
     if started and not ns.state.safeMode and settings(def).enabled then

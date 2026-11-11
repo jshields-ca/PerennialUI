@@ -16,6 +16,8 @@
         "GetRealmName",
         "GetTime",
         "InCombatLockdown",
+        "UIParent",
+        "UISpecialFrames",
         "UnitName",
         "debugstack",
         "issecretvalue",
