@@ -1,0 +1,31 @@
+name: Release
+
+# Pushing a tag like v0.1.0 (or v0.1.0-alpha.1) runs the checks, builds the
+# zip and publishes it. CurseForge and Wago uploads happen once the project
+# IDs are added to the TOC and the tokens to the repo secrets.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    uses: ./.github/workflows/ci.yml
+
+  release:
+    name: Package and publish
+    needs: checks
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: BigWigsMods/packager@v2
+        env:
+          GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
+          CF_API_KEY: ${{ secrets.CF_API_KEY }}
+          WAGO_API_TOKEN: ${{ secrets.WAGO_API_TOKEN }}

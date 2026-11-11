@@ -1,0 +1,38 @@
+name: Bug report
+description: Something is broken or behaves wrongly
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what you saw instead.
+    validations:
+      required: true
+  - type: textarea
+    id: report
+    attributes:
+      label: Output of /pui bug
+      description: Type `/pui bug` in game and paste what it prints. It lists the version, module states and recent errors.
+      render: text
+    validations:
+      required: true
+  - type: dropdown
+    id: safe
+    attributes:
+      label: Does it still happen with other addons disabled?
+      options:
+        - "Yes"
+        - "No"
+        - Not tested
+    validations:
+      required: true
+  - type: input
+    id: character
+    attributes:
+      label: Class, level and where you were
+      placeholder: "Level 34 hunter, in combat in Stranglethorn Vale"
+  - type: textarea
+    id: extra
+    attributes:
+      label: Screenshots or anything else

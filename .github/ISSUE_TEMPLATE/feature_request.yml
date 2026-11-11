@@ -1,0 +1,42 @@
+name: Feature or module proposal
+description: Suggest a feature, or say you want to build one
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What should the player be able to do?
+      description: Describe the behaviour in the game, not an implementation.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Foundation (settings, profiles, layout)
+        - Frames (unit, raid, nameplates, cast bars)
+        - Combat
+        - Bars and bags
+        - Interface (minimap, chat, tooltips)
+        - Questing
+        - Group content
+        - Gear and economy
+        - Account
+        - Other
+    validations:
+      required: true
+  - type: checkboxes
+    id: build
+    attributes:
+      label: Do you want to build it?
+      options:
+        - label: I would like to work on this
+  - type: checkboxes
+    id: cleanroom
+    attributes:
+      label: Clean room
+      description: Describe behaviour you have seen as a player. Do not paste code, settings files or assets from another addon.
+      options:
+        - label: This proposal contains nothing copied from another addon's files
+          required: true

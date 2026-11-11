@@ -1,0 +1,26 @@
+{
+    "$schema": "https://raw.githubusercontent.com/LuaLS/vscode-lua/master/setting/schema.json",
+    "runtime.version": "Lua 5.1",
+    "workspace.ignoreDir": ["PerennialUI/Libs", ".release", "lua_modules"],
+    "workspace.library": ["tools/api"],
+    "diagnostics.globals": [
+        "PerennialUI",
+        "PerennialUIDB",
+        "PerennialUICharDB",
+        "SlashCmdList",
+        "SLASH_PERENNIALUI1",
+        "SLASH_PERENNIALUI2",
+        "C_AddOns",
+        "CreateFrame",
+        "GetBuildInfo",
+        "GetRealmName",
+        "GetTime",
+        "InCombatLockdown",
+        "UnitName",
+        "debugstack",
+        "issecretvalue",
+        "describe",
+        "it",
+        "before_each"
+    ]
+}

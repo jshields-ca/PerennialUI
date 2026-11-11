@@ -1,0 +1,21 @@
+## Interface: 16001
+## Title: Perennial UI
+## Notes: An open-source, modular interface for WoW: Forever. Built from scratch by the community.
+## Author: Perennial UI contributors
+## Version: @project-version@
+## SavedVariables: PerennialUIDB
+## SavedVariablesPerCharacter: PerennialUICharDB
+## X-License: GPL-3.0-or-later
+## X-Website: https://github.com/jshields-ca/PerennialUI
+
+Core/Init.lua
+Core/Safety.lua
+Core/Events.lua
+Core/Serialize.lua
+Core/DB.lua
+Core/Theme.lua
+Core/Combat.lua
+Compat/Compat.lua
+Core/Modules.lua
+Settings/Slash.lua
+Core/Boot.lua

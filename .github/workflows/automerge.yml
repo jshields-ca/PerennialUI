@@ -1,0 +1,30 @@
+name: Auto-merge
+
+# Turns on GitHub's auto-merge for every ready pull request, so it merges by
+# itself the moment the required checks pass and a code owner has approved.
+# Nobody needs merge rights or to click anything; reviewers only review.
+#
+# It does nothing until the repository variable AUTO_MERGE is set to "true".
+# Only set that after branch protection on main requires the CI checks and a
+# code-owner approval. Without those rules, auto-merge would merge at once.
+#
+# pull_request_target runs with the base repository's token so it works for
+# forks. This workflow never checks out or runs code from the pull request.
+on:
+  pull_request_target:
+    types: [opened, reopened, ready_for_review]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  enable:
+    name: Enable auto-merge
+    if: vars.AUTO_MERGE == 'true' && !github.event.pull_request.draft
+    runs-on: ubuntu-latest
+    steps:
+      - run: gh pr merge --auto --squash "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

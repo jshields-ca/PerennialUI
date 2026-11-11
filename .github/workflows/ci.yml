@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_call:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: leafo/gh-actions-lua@v13
+        with:
+          luaVersion: "5.1"
+      - uses: leafo/gh-actions-luarocks@v6
+      - run: luarocks install luacheck
+      - run: luacheck .
+
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: leafo/gh-actions-lua@v13
+        with:
+          luaVersion: "5.1"
+      - uses: leafo/gh-actions-luarocks@v6
+      - run: luarocks install busted
+      - run: busted --verbose
+
+  files:
+    name: File checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: bash tools/check-files.sh
+
+  dco:
+    name: DCO
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Every commit is signed off
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          status=0
+          for commit in $(git rev-list --no-merges "$BASE..$HEAD"); do
+            if ! git log -1 --format=%B "$commit" | grep -qE '^Signed-off-by: .+ <.+>$'; then
+              echo "::error::Commit $(git log -1 --format='%h %s' "$commit") has no Signed-off-by line."
+              status=1
+            fi
+          done
+          if [ "$status" -ne 0 ]; then
+            echo "Sign your commits with: git commit -s   (see CONTRIBUTING.md, 'Sign your work')"
+            echo "To fix existing commits: git rebase --signoff $BASE && git push --force-with-lease"
+          fi
+          exit "$status"

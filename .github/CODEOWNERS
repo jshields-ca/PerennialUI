@@ -1,0 +1,8 @@
+# A pull request merges once CI passes and a code owner of the files it
+# touches has approved. The last matching line wins.
+#
+# Regular contributors become owners of the module folders they maintain.
+# To propose yourself, open a pull request adding a line like:
+#   /PerennialUI/Modules/Bags/  @your-github-name @jshields-ca
+
+*  @jshields-ca

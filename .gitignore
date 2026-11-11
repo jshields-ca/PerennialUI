@@ -1,0 +1,12 @@
+.release/
+*.zip
+.luarocks/
+lua_modules/
+luacov.*.out
+node_modules/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+# Generated from your own client with /apiexport; not redistributed.
+tools/api/
