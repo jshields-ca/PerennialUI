@@ -129,9 +129,6 @@ function Widgets.Panel(parent, name, opts)
     local highlight = panel:CreateTexture(nil, "ARTWORK")
     highlight:SetHeight(1)
     local rail = opts.rail and panel:CreateTexture(nil, "ARTWORK")
-    if rail then
-        rail:SetWidth(Theme.Get("border.rail"))
-    end
     styled(function()
         -- Keep clear of the corners, which are rounded when the shape is soft.
         local inset = Theme.Radius() + 1
@@ -140,10 +137,17 @@ function Widgets.Panel(parent, name, opts)
         highlight:SetPoint("TOPRIGHT", panel, "TOPRIGHT", -inset, -1)
         highlight:SetColorTexture(Theme.Color("highlight"))
         if rail then
+            -- Soft: a mask of the panel's left edge, so the rail follows the
+            -- rounded corners. Crisp: a plain strip down the full height.
+            local r, g, b, a = Theme.Color("accent")
             rail:ClearAllPoints()
-            rail:SetPoint("TOPLEFT", panel, "TOPLEFT", 1, -inset)
-            rail:SetPoint("BOTTOMLEFT", panel, "BOTTOMLEFT", 1, inset)
-            rail:SetColorTexture(Theme.Color("accent"))
+            rail:SetAllPoints(panel)
+            if not paint(rail, Theme.Get("texture.panelRail"), r, g, b, a) then
+                rail:ClearAllPoints()
+                rail:SetPoint("TOPLEFT", panel, "TOPLEFT", 0, 0)
+                rail:SetPoint("BOTTOMLEFT", panel, "BOTTOMLEFT", 0, 0)
+                rail:SetWidth(Theme.Get("border.rail"))
+            end
         end
     end)
     return panel

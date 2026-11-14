@@ -97,6 +97,7 @@ local tokens = {
         -- White masks with a 6px corner radius, tinted at draw time.
         panelFill = MEDIA .. "Textures\\panel-fill.tga",
         panelEdge = MEDIA .. "Textures\\panel-edge.tga",
+        panelRail = MEDIA .. "Textures\\panel-rail.tga",
         slice = 8, -- nine-slice margin of both textures
     },
 }

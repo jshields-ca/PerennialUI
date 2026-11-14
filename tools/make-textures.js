@@ -4,6 +4,8 @@
 // nine-sliced (margin 8) and tinted by the theme at draw time:
 //   panel-fill.tga  a filled rounded rectangle
 //   panel-edge.tga  its one-pixel outline
+//   panel-rail.tga  only its left three pixels: the accent rail, which
+//                   follows the rounded corners
 // Run from the repo root: node tools/make-textures.js
 const fs = require("fs");
 const path = require("path");
@@ -25,7 +27,7 @@ function distance(x, y) {
 
 const clamp = (v) => Math.max(0, Math.min(1, v));
 
-function tga(alphaAt) {
+function tga(alphaAt, maxX) {
   const header = Buffer.alloc(18);
   header[2] = 2; // uncompressed true colour
   header.writeUInt16LE(SIZE, 12);
@@ -37,7 +39,8 @@ function tga(alphaAt) {
     for (let x = 0; x < SIZE; x++) {
       const i = (y * SIZE + x) * 4;
       pixels[i] = pixels[i + 1] = pixels[i + 2] = 255; // BGR white
-      pixels[i + 3] = Math.round(clamp(alphaAt(distance(x, y))) * 255);
+      const alpha = maxX !== undefined && x >= maxX ? 0 : clamp(alphaAt(distance(x, y)));
+      pixels[i + 3] = Math.round(alpha * 255);
     }
   }
   return Buffer.concat([header, pixels]);
@@ -48,4 +51,6 @@ fs.mkdirSync(out, { recursive: true });
 fs.writeFileSync(path.join(out, "panel-fill.tga"), tga((d) => 0.5 - d));
 // Edge: a band one pixel wide just inside the boundary.
 fs.writeFileSync(path.join(out, "panel-edge.tga"), tga((d) => Math.min(0.5 - d, d + 1.5)));
-console.log("Wrote panel-fill.tga and panel-edge.tga to " + out);
+// Rail: the fill, cut off after the third column.
+fs.writeFileSync(path.join(out, "panel-rail.tga"), tga((d) => 0.5 - d, 3));
+console.log("Wrote panel-fill.tga, panel-edge.tga and panel-rail.tga to " + out);
