@@ -20,6 +20,6 @@ In the game the mark follows the player's season. Everywhere else it uses the sp
 
 Type is Sora Bold for the wordmark, DM Sans Medium for text and DM Mono Medium for small labels, the same fonts the addon bundles.
 
-The artwork was drawn for this project as hand-written SVG and is licensed with the rest of the repository. `header.svg` refers to the fonts by name, so export its PNG with the bundled font files loaded; if you change an SVG, re-export its PNGs at the sizes above.
+The artwork was drawn for this project as hand-written SVG and is licensed with the rest of the repository. The text in `header.svg` is converted to outlines, so it looks the same on any machine whether or not the fonts are installed. To change the wording, regenerate the outlines from the bundled font files. If you change an SVG, re-export its PNGs at the sizes above.
 
 Still to do: the in-game addon icon needs a TGA or BLP export placed in `PerennialUI/Media/` and referenced from the TOC.
