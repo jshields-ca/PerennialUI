@@ -21,7 +21,9 @@ permissions:
 jobs:
   enable:
     name: Enable auto-merge
-    if: vars.AUTO_MERGE == 'true' && !github.event.pull_request.draft
+    # Only for pull requests into main. main is protected, so auto-merge waits
+    # for checks and approval; on an unprotected branch it would merge at once.
+    if: vars.AUTO_MERGE == 'true' && !github.event.pull_request.draft && github.event.pull_request.base.ref == 'main'
     runs-on: ubuntu-latest
     steps:
       - run: gh pr merge --auto --squash "$PR_URL"
