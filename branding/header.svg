@@ -1,33 +1,44 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640" role="img" aria-label="Perennial UI social header">
-  <rect width="1280" height="640" fill="#F2E8D5"/>
-  <g fill="none" stroke="#231A14" stroke-linecap="round">
-    <circle cx="250" cy="400" r="380" stroke-width="30"/>
-    <circle cx="254" cy="400" r="326" stroke-width="8"/>
-    <circle cx="259" cy="397" r="276" stroke-width="10"/>
-    <circle cx="263" cy="395" r="222" stroke-width="7"/>
-    <circle cx="266" cy="392" r="172" stroke-width="10"/>
-    <circle cx="268" cy="390" r="122" stroke-width="7"/>
-    <circle cx="270" cy="388" r="76" stroke-width="9"/>
-    <circle cx="271" cy="387" r="36" stroke-width="7"/>
-    <path d="M330 430 L520 570" stroke-width="8"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640" role="img" aria-label="Perennial UI: the interface that grows back">
+  <defs>
+    <radialGradient id="glowA" cx="0.2" cy="0.3" r="0.6">
+      <stop offset="0" stop-color="#7BD88F" stop-opacity="0.30"/>
+      <stop offset="1" stop-color="#7BD88F" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowB" cx="0.95" cy="0.95" r="0.6">
+      <stop offset="0" stop-color="#F3A6C4" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#F3A6C4" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1A2B2C" stop-opacity="0.92"/>
+      <stop offset="1" stop-color="#0D151C" stop-opacity="0.92"/>
+    </linearGradient>
+  </defs>
+  <rect width="1280" height="640" fill="#0A1018"/>
+  <rect width="1280" height="640" fill="url(#glowA)"/>
+  <rect width="1280" height="640" fill="url(#glowB)"/>
+
+  <!-- one glass panel, with the lit top edge and accent rail the UI uses -->
+  <rect x="96" y="120" width="1088" height="400" rx="12" fill="url(#glass)"/>
+  <rect x="96.5" y="120.5" width="1087" height="399" rx="11.5" fill="none" stroke="#7BD88F" stroke-opacity="0.42"/>
+  <rect x="110" y="122" width="1060" height="1" fill="#FFFFFF" fill-opacity="0.16"/>
+  <rect x="98" y="134" width="5" height="372" fill="#7BD88F"/>
+
+  <g transform="translate(300 320)">
+    <ellipse cx="0" cy="-66" rx="50" ry="74" fill="#7BD88F"/>
+    <ellipse cx="66" cy="0" rx="74" ry="50" fill="#F3A6C4" fill-opacity="0.8"/>
+    <ellipse cx="0" cy="66" rx="50" ry="74" fill="#7BD88F" fill-opacity="0.55"/>
+    <ellipse cx="-66" cy="0" rx="74" ry="50" fill="#F3A6C4" fill-opacity="0.4"/>
+    <circle r="20" fill="#FFFFFF"/>
   </g>
-  <g stroke="#F2E8D5" stroke-linejoin="round" stroke-linecap="round" fill="#F2E8D5" stroke-width="30">
-    <path d="M271 387 C274 300 250 240 256 120" fill="none" stroke-width="52"/>
-    <path d="M254 222 C184 216 138 164 132 100 C202 106 248 154 254 222 Z"/>
-    <path d="M256 166 C316 146 364 92 364 30 C300 46 258 98 256 166 Z"/>
-  </g>
-  <g fill="#5F8F3E">
-    <path d="M271 387 C274 300 250 240 256 120" fill="none" stroke="#5F8F3E" stroke-width="22" stroke-linecap="round"/>
-    <path d="M254 222 C184 216 138 164 132 100 C202 106 248 154 254 222 Z"/>
-    <path d="M256 166 C316 146 364 92 364 30 C300 46 258 98 256 166 Z"/>
-  </g>
-  <circle cx="271" cy="387" r="13" fill="#C4552B"/>
-  <g font-family="Georgia, 'Times New Roman', serif" fill="#231A14">
-    <text x="660" y="300" font-size="84" font-weight="bold" letter-spacing="-2">Perennial UI</text>
-    <text x="663" y="352" font-size="30" font-style="italic">The interface that grows back.</text>
-  </g>
-  <rect x="663" y="392" width="64" height="8" fill="#C4552B"/>
-  <g font-family="Consolas, 'Courier New', monospace" font-size="21" fill="#231A14">
-    <text x="663" y="446">open source  ·  modular  ·  WoW: Forever</text>
+
+  <text x="500" y="318" font-family="Sora" font-weight="700" font-size="92" letter-spacing="-2" fill="#EEF4F8">Perennial UI</text>
+  <text x="504" y="372" font-family="DM Sans" font-weight="500" font-size="30" fill="#A3B3C0">The interface that grows back.</text>
+  <text x="504" y="430" font-family="DM Mono" font-weight="500" font-size="20" fill="#7BD88F">open source  ·  modular  ·  WoW: Forever</text>
+
+  <g transform="translate(504 462)">
+    <rect width="34" height="6" rx="3" fill="#7BD88F"/>
+    <rect x="42" width="34" height="6" rx="3" fill="#FFC24B"/>
+    <rect x="84" width="34" height="6" rx="3" fill="#FF8A4C"/>
+    <rect x="126" width="34" height="6" rx="3" fill="#7CC4FF"/>
   </g>
 </svg>

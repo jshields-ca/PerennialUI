@@ -93,7 +93,7 @@ describe("Theme", function()
             for j = 1, #Theme.COLOR_TOKENS do
                 local r, g, b, a = Theme.Color(Theme.COLOR_TOKENS[j])
                 assert.is_true(r >= 0 and r <= 1 and g >= 0 and g <= 1 and b >= 0 and b <= 1)
-                assert.equal(1, a)
+                assert.is_true(a > 0 and a <= 1)
             end
         end
     end)
@@ -116,6 +116,33 @@ describe("Theme", function()
         assert.equal(Theme.DEFAULT_SEASON, Theme.GetSeason())
         ns.DB.SetProfile("Default")
         assert.equal("winter", Theme.GetSeason())
+    end)
+
+    it("keeps text opaque and panels see-through in every season", function()
+        local seasons = Theme.ListSeasons()
+        for i = 1, #seasons do
+            Theme.SetSeason(seasons[i])
+            assert.equal(1, (select(4, Theme.Color("text"))))
+            assert.equal(1, (select(4, Theme.Color("accent"))))
+            assert.is_true(select(4, Theme.Color("bg")) < 1)
+        end
+    end)
+
+    it("builds a glass palette from two accent colours", function()
+        Theme.RegisterSeason("ember", Theme.MakePalette("#FF0000", "#00FF00"))
+        Theme.SetSeason("ember")
+        local r, g, b = Theme.Color("accent")
+        assert.same({ 1, 0, 0 }, { r, g, b })
+        local br, bg, bb = Theme.Color("bg")
+        assert.is_true(br > bg and br > bb) -- the panel carries the accent's tint
+    end)
+
+    it("uses the bundled fonts, except where they lack the script", function()
+        assert.is_truthy(Theme.Get("font.heading"):find("Sora-Bold.ttf", 1, true))
+        assert.is_truthy(Theme.Get("font.body"):find("DMSans-Medium.ttf", 1, true))
+        assert.is_truthy(Theme.Get("font.number"):find("DMMono-Medium.ttf", 1, true))
+        local russian = Loader.load({ locale = "ruRU" })
+        assert.equal("Fonts\\FRIZQT__.TTF", russian.Theme.Get("font.body"))
     end)
 
     it("exposes spacing and shape tokens", function()
