@@ -183,6 +183,10 @@ function Stub.reset()
     _G.GetRealmName = function()
         return "Stubrealm"
     end
+    Stub.locale = Stub.locale or "enUS"
+    _G.GetLocale = function()
+        return Stub.locale
+    end
     _G.GetBuildInfo = function()
         return "1.60.1", "99999", "Nov 1 2026", Stub.interface
     end

@@ -6,7 +6,7 @@ Perennial UI is a GPL-3.0-or-later interface replacement for World of Warcraft: 
 
 - **Never open, read, fetch, paste or summarise the files of ObsidianUI, ForeverUI, or any addon that does not permit reuse.** No Lua, XML, textures, fonts or settings files. This includes copies on the user's disk (for example in an `Interface/AddOns` folder) and copies on GitHub, CurseForge or Wago.
 - Specs come only from public behaviour: public feature descriptions, how a feature behaves in game, and the client's own API.
-- Do not reproduce another addon's look ("dark glass", one accent on black), preset names or branding.
+- Do not copy another addon's specific look, preset names or branding. Perennial's own look is defined under "Decisions already made"; build from that, not from how any other UI appears.
 - If a task seems to need another addon's source, stop and say so.
 - GPL-compatible code (MIT, BSD, GPL) may be used with attribution in `THIRD_PARTY.md`; ask first.
 
@@ -71,4 +71,7 @@ CI runs all three plus a DCO check on every pull request. If Lua is not installe
 - Framework: our own small core, no Ace3. Small single-purpose libraries may be vendored when needed.
 - Merging: CI green plus a code-owner approval, then auto-merge by squash.
 - Theme system: four seasons. Avoid the preset names healer, raider, minimal, hardcore, controller.
+- Look (chosen by the owner on 2026-11-14, replacing the brief's "avoid dark glass" rule): dark see-through glass tinted by the season's two accent colours, a lit top edge, an accent rail on the left, smooth 6px corners. Colours with meaning (health, power, threat) never change with the season. There is no blur: addons cannot blur the game behind a frame.
+- Fonts: Sora Bold (headings), DM Sans Medium (body), DM Mono Medium (numbers), all SIL OFL, bundled in `Media/Fonts`. Non-Latin locales keep the client's fonts.
+- Logo: four petals in the season's two colours. Sources in `branding/`; the fixed version outside the game uses the spring colours.
 - Open questions are tracked at the end of `docs/ROADMAP.md`.

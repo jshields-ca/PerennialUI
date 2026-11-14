@@ -37,7 +37,7 @@ local Sandbox = ns.Modules.Register({
 })
 
 function Sandbox:Build()
-    local frame = Widgets.Panel(UIParent)
+    local frame = Widgets.Panel(UIParent, nil, { rail = true })
     frame:SetSize(220, 64)
     frame.heading = Widgets.Text(frame, "Perennial UI sandbox", "lg", "accent")
     frame.heading:SetPoint("TOP", frame, "TOP", 0, -10)

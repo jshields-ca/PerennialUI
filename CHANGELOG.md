@@ -8,7 +8,8 @@ Notable changes for players. The format follows [Keep a Changelog](https://keepa
 
 - Core: event bus, module registry, and a safety net that pauses a module that keeps erroring while the rest keeps running.
 - Profiles: per-character profile choice, copy, delete, reset, share strings, and versioned migrations.
-- Theme tokens with four seasonal palettes (spring, summer, autumn, winter) and a soft/crisp shape setting.
+- A look of its own: dark see-through glass tinted by the season (spring, summer, autumn, winter), with smooth or square corners.
+- Bundled open fonts: Sora, DM Sans and DM Mono.
 - Combat lockdown queue for changes that must wait until combat ends.
 - Settings window (`/pui`): pages, search, simple and advanced modes, undo, change history, pinned pages; resizable and movable.
 - Layout mode (`/pui move`): drag handles, grid snap, per-profile positions, right click to reset.

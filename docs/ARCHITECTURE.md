@@ -66,7 +66,7 @@ One hidden frame registers game events once, however many modules want them, and
 
 ### Theme (`Core/Theme.lua`)
 
-`Theme.Color("accent")` returns r, g, b, a for the active season. `Theme.Get("space.md")` returns spacing, border and font tokens. `Theme.Radius()` follows the soft/crisp shape setting. New palettes register with `Theme.RegisterSeason` and must define every colour token.
+A season is two accent colours; `Theme.MakePalette(accent, accentAlt)` derives every panel colour from them. Panels are see-through (alpha below 1), text and accents are opaque. `Theme.Color("accent")` returns r, g, b, a for the active season. Fonts are `font.heading`, `font.body` and `font.number`. `Theme.Get("space.md")` returns spacing, border and font tokens. `Theme.Radius()` follows the soft/crisp shape setting. New palettes register with `Theme.RegisterSeason` and must define every colour token.
 
 ### Combat (`Core/Combat.lua`)
 
@@ -86,7 +86,7 @@ Modules register movable frames. A position is the frame's centre offset from th
 
 ### Widgets (`UI/Widgets.lua`)
 
-Themed building blocks: text, panel, button, checkbox, slider, picker, text input, scroll area. Each restyles itself when the season changes. Corners are square for now: rounding needs texture assets that do not exist yet.
+Themed building blocks: text, panel, button, checkbox, slider, picker, text input, scroll area. Each restyles itself when the season or shape changes. A panel is a see-through tinted fill, a one-pixel border, a lit top edge and an optional accent rail. With the soft shape, fills and borders are drawn from nine-sliced rounded masks in `Media/Textures`; with the crisp shape, or on a client without nine-slicing, they are plain rectangles.
 
 ## Testing
 

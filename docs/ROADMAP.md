@@ -23,7 +23,8 @@ Status: in progress.
 | Namespace, event bus, safety net | Done, tested | |
 | Module registry: register, enable, disable, pause, per-module settings | Done, tested | |
 | Saved variables: schema migrations, defaults, profiles, share strings | Done, tested | |
-| Theme tokens and seasonal palettes | Done, tested | Palettes are a first pass; font not chosen |
+| Theme tokens and seasonal palettes | Done, tested | Dark season-tinted glass; Sora, DM Sans and DM Mono bundled |
+| Rounded panels, accent rail and bundled fonts drawn in the client | Written, **not yet run in game** | Uses nine-slice textures; falls back to square corners and client fonts if the client refuses them |
 | Combat lockdown queue | Done, tested | |
 | Compat layer and hidden-value guard | Done, tested against a stub | **Needs verifying in the live client** |
 | Slash commands: config, help, move, test, safe, bug, undo, modules, enable, disable | Done, tested | |
@@ -128,7 +129,9 @@ Classic Era, Hardcore and Season of Discovery use a different API. The shims go 
 | 2026-11-11 | Own small core instead of Ace3. Single-purpose libraries may be vendored when needed |
 | 2026-11-11 | Pull requests merge automatically once CI passes and a code owner approves. Contributors become code owners of the modules they maintain |
 | 2026-11-11 | Seasons (spring, summer, autumn, winter) are the built-in theme system |
-| 2026-11-11 | Logo is the growth-rings mark (a cut stump with a new shoot); sources in `branding/` |
+| 2026-11-14 | Look is dark see-through glass tinted by the season, with a lit top edge, an accent rail and smooth corners. This replaces the brief's rule to avoid dark glass |
+| 2026-11-14 | Fonts are Sora (headings), DM Sans (body) and DM Mono (numbers), all SIL OFL |
+| 2026-11-14 | Logo is four petals in the season's two colours (replaces the growth-rings mark); sources in `branding/` |
 | 2026-11-11 | One addon with internal modules for now; the repo layout allows sub-addons later |
 
 ## Open questions
@@ -136,7 +139,7 @@ Classic Era, Hardcore and Season of Discovery use a different API. The shims go 
 - **Unit frames:** oUF or our own? Needs a test under hidden combat values.
 - **Hidden values:** confirm the client's predicate for hidden values and exactly which fields are hidden, from the live `/api` export. `Compat.IsHidden` currently assumes `issecretvalue`.
 - **`/pui`:** check that no popular addon already uses this slash command.
-- **Shape language:** soft or crisp as the default? It is a token either way.
-- **Font:** pick an openly licensed face that is distinct from other Forever UIs, and check its licence.
+- **Glass details:** a top-to-bottom gradient inside panels and a softer drop shadow are in the mock-ups but not yet drawn in game.
+- **Non-Latin fonts:** Russian, Korean and Chinese clients fall back to the game's fonts. Pick open fonts for those scripts later.
 - **Outreach:** whether to tell the authors of the existing closed UIs that this project exists and is independent.
 - **Spec switching:** what profile auto-switch should key on in a Classic-content client.

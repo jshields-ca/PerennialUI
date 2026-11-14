@@ -26,6 +26,7 @@ read_globals = {
     "C_AddOns",
     "CreateFrame",
     "GetBuildInfo",
+    "GetLocale",
     "GetRealmName",
     "GetTime",
     "InCombatLockdown",

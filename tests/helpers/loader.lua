@@ -27,6 +27,7 @@ end
 --- opts.boot = false stops before ADDON_LOADED / PLAYER_LOGIN.
 function Loader.load(opts)
     opts = opts or {}
+    Stub.locale = opts.locale
     Stub.reset()
     if opts.interface then
         Stub.interface = opts.interface

@@ -25,12 +25,24 @@ Events.Listen("core.widgets", "PUI_THEME_CHANGED", function()
     end
 end)
 
---- A font string. size is a font.size token (sm, md, lg, xl); color a colour token.
-function Widgets.Text(parent, text, size, color)
+--- Apply a theme font. role is heading, body or number; size a font.size token.
+--- Falls back to a client font if the bundled file cannot be loaded.
+function Widgets.SetFont(target, role, size)
+    local height = Theme.Get("font.size." .. size)
+    target:SetFont(Theme.Get("font." .. role), height, "")
+    if not target:GetFont() then
+        target:SetFont(Theme.Get("font.fallback"), height, "")
+    end
+end
+
+--- A font string. size is a font.size token (sm, md, lg, xl); color a colour
+--- token; role is heading, body or number (large sizes default to heading).
+function Widgets.Text(parent, text, size, color, role)
     local label = parent:CreateFontString(nil, "OVERLAY")
     size, color = size or "md", color or "text"
+    role = role or ((size == "lg" or size == "xl") and "heading" or "body")
     styled(function()
-        label:SetFont(Theme.Get("font.body"), Theme.Get("font.size." .. size), "")
+        Widgets.SetFont(label, role, size)
         label:SetTextColor(Theme.Color(color))
     end)
     label:SetJustifyH("LEFT")
@@ -38,28 +50,59 @@ function Widgets.Text(parent, text, size, color)
     return label
 end
 
---- A solid colour texture. Covers the frame unless you re-anchor it.
-function Widgets.Fill(frame, token, layer, alpha)
+-- Draw a texture as a tinted rounded mask when the shape is soft and the
+-- client can nine-slice; otherwise as a flat colour.
+local function paint(texture, file, r, g, b, a, square)
+    if not square and Theme.GetShape() == "soft" and texture.SetTextureSliceMargins then
+        local margin = Theme.Get("texture.slice")
+        texture:SetTexture(file)
+        texture:SetTextureSliceMargins(margin, margin, margin, margin)
+        texture:SetVertexColor(r, g, b, a)
+        return true
+    end
+    if texture.ClearTextureSlice then
+        texture:ClearTextureSlice()
+    end
+    texture:SetColorTexture(r, g, b, a)
+    texture:SetVertexColor(1, 1, 1, 1)
+    return false
+end
+
+--- A colour fill that covers the frame unless you re-anchor it. It follows
+--- the shape setting (rounded when soft). Pass square = true for anything
+--- smaller than 16 pixels in either direction.
+function Widgets.Fill(frame, token, layer, alpha, square)
     local texture = frame:CreateTexture(nil, layer or "BACKGROUND")
     texture:SetAllPoints(frame)
     styled(function()
         local r, g, b, a = Theme.Color(token)
-        texture:SetColorTexture(r, g, b, alpha or a)
+        paint(texture, Theme.Get("texture.panelFill"), r, g, b, alpha or a, square)
     end)
     return texture
 end
 
---- A one-token-wide border drawn inside the frame's edge.
-function Widgets.Border(frame, token)
+--- A one-pixel border drawn inside the frame's edge. It follows the shape
+--- setting: a rounded outline when soft, four straight edges when crisp.
+function Widgets.Border(frame, token, square)
     local width = Theme.Get("border.width")
+    local ring = frame:CreateTexture(nil, "BORDER")
+    ring:SetAllPoints(frame)
     local edges = {}
     for i = 1, 4 do
-        local edge = frame:CreateTexture(nil, "BORDER")
-        styled(function()
-            edge:SetColorTexture(Theme.Color(token or "border"))
-        end)
-        edges[i] = edge
+        edges[i] = frame:CreateTexture(nil, "BORDER")
     end
+    styled(function()
+        local r, g, b, a = Theme.Color(token or "border")
+        local soft = not square and Theme.GetShape() == "soft" and ring.SetTextureSliceMargins ~= nil
+        if soft then
+            paint(ring, Theme.Get("texture.panelEdge"), r, g, b, a)
+        end
+        ring:SetShown(soft)
+        for i = 1, 4 do
+            edges[i]:SetColorTexture(r, g, b, a)
+            edges[i]:SetShown(not soft)
+        end
+    end)
     edges[1]:SetPoint("TOPLEFT")
     edges[1]:SetPoint("TOPRIGHT")
     edges[1]:SetHeight(width)
@@ -75,11 +118,34 @@ function Widgets.Border(frame, token)
     return edges
 end
 
---- A bordered, filled frame.
-function Widgets.Panel(parent, name, token)
+--- A glass panel: see-through tinted fill, border and a lit top edge.
+--- opts.rail = true adds the accent rail down the left side.
+function Widgets.Panel(parent, name, opts)
+    opts = opts or {}
     local panel = CreateFrame("Frame", name, parent)
-    Widgets.Fill(panel, token or "bg")
+    Widgets.Fill(panel, opts.token or "bg")
     Widgets.Border(panel)
+
+    local highlight = panel:CreateTexture(nil, "ARTWORK")
+    highlight:SetHeight(1)
+    local rail = opts.rail and panel:CreateTexture(nil, "ARTWORK")
+    if rail then
+        rail:SetWidth(Theme.Get("border.rail"))
+    end
+    styled(function()
+        -- Keep clear of the corners, which are rounded when the shape is soft.
+        local inset = Theme.Radius() + 1
+        highlight:ClearAllPoints()
+        highlight:SetPoint("TOPLEFT", panel, "TOPLEFT", inset, -1)
+        highlight:SetPoint("TOPRIGHT", panel, "TOPRIGHT", -inset, -1)
+        highlight:SetColorTexture(Theme.Color("highlight"))
+        if rail then
+            rail:ClearAllPoints()
+            rail:SetPoint("TOPLEFT", panel, "TOPLEFT", 1, -inset)
+            rail:SetPoint("BOTTOMLEFT", panel, "BOTTOMLEFT", 1, inset)
+            rail:SetColorTexture(Theme.Color("accent"))
+        end
+    end)
     return panel
 end
 
@@ -158,7 +224,7 @@ function Widgets.Slider(parent, low, high, step, onChange, owner)
         thumb:SetColorTexture(Theme.Color("accent"))
     end)
 
-    slider.readout = Widgets.Text(slider, "", "sm", "textMuted")
+    slider.readout = Widgets.Text(slider, "", "sm", "textMuted", "number")
     slider.readout:SetPoint("RIGHT", slider, "LEFT", -8, 0)
 
     local decimals = (step and step < 1) and 2 or 0
@@ -219,7 +285,7 @@ function Widgets.Input(parent, onChange, owner)
     Widgets.Fill(input, "surface")
     Widgets.Border(input)
     styled(function()
-        input:SetFont(Theme.Get("font.body"), Theme.Get("font.size.md"), "")
+        Widgets.SetFont(input, "body", "md")
         input:SetTextColor(Theme.Color("text"))
     end)
     input:SetScript("OnEscapePressed", function()
