@@ -6,7 +6,7 @@ Perennial UI is a GPL-3.0-or-later interface replacement for World of Warcraft: 
 
 - **Never open, read, fetch, paste or summarise the files of ObsidianUI, ForeverUI, or any addon that does not permit reuse.** No Lua, XML, textures, fonts or settings files. This includes copies on the user's disk (for example in an `Interface/AddOns` folder) and copies on GitHub, CurseForge or Wago.
 - Specs come only from public behaviour: public feature descriptions, how a feature behaves in game, and the client's own API.
-- Do not reproduce another addon's look ("dark glass", one accent on black), preset names or branding.
+- Do not copy another addon's specific look, preset names or branding. Perennial's own look is defined under "Decisions already made"; build from that, not from how any other UI appears.
 - If a task seems to need another addon's source, stop and say so.
 - GPL-compatible code (MIT, BSD, GPL) may be used with attribution in `THIRD_PARTY.md`; ask first.
 
@@ -25,8 +25,10 @@ Perennial UI is a GPL-3.0-or-later interface replacement for World of Warcraft: 
 PerennialUI/            the addon; PerennialUI.toc lists load order
   Core/                 Init, Safety, Events, Serialize, DB, Theme, Combat, Modules, Boot
   Compat/               client differences and hidden-value guards
-  Settings/             slash commands (settings window to come)
-  Modules/              one folder per feature module
+  Settings/             Registry (option data, undo, search), Pages, Window, Slash
+  UI/                   Widgets: themed building blocks
+  Layout/               movers and layout mode
+  Modules/              one folder per feature module (Sandbox is the worked example)
   Media/  Libs/         openly licensed assets and vendored libraries
 tests/                  busted specs; tests/stub/wow.lua fakes the client API
 tools/                  check-files.sh, link scripts
@@ -43,6 +45,7 @@ docs/                   ARCHITECTURE.md, MODULES.md, ROADMAP.md
 - No hard-coded colours, spacing or fonts: use `ns.Theme`.
 - Saved data goes through `ns.DB`; a change to the saved layout needs a bump of `DB.SCHEMA` and a migration with a test.
 - Every module has an off switch, and off means the default Blizzard element is left as it was.
+- Tests cannot check client API calls: the stub ignores unknown frame methods. Say when UI code has not been run in the game.
 - Core code must stay loadable outside the game: new client API calls need a stub in `tests/stub/wow.lua` and an entry in `.luacheckrc` and `.luarc.json`.
 - Player-facing text is plain and short. No colour codes in the core.
 
@@ -68,4 +71,7 @@ CI runs all three plus a DCO check on every pull request. If Lua is not installe
 - Framework: our own small core, no Ace3. Small single-purpose libraries may be vendored when needed.
 - Merging: CI green plus a code-owner approval, then auto-merge by squash.
 - Theme system: four seasons. Avoid the preset names healer, raider, minimal, hardcore, controller.
+- Look (chosen by the owner on 2026-11-14, replacing the brief's "avoid dark glass" rule): dark see-through glass tinted by the season's two accent colours, a lit top edge, an accent rail on the left, smooth 6px corners. Colours with meaning (health, power, threat) never change with the season. There is no blur: addons cannot blur the game behind a frame.
+- Fonts: Sora Bold (headings), DM Sans Medium (body), DM Mono Medium (numbers), all SIL OFL, bundled in `Media/Fonts`. Non-Latin locales keep the client's fonts.
+- Logo: four petals in the season's two colours. Sources in `branding/`; the fixed version outside the game uses the spring colours.
 - Open questions are tracked at the end of `docs/ROADMAP.md`.

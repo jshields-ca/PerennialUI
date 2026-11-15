@@ -1,6 +1,9 @@
 -- SPDX-License-Identifier: GPL-3.0-or-later
 -- Design tokens. Modules never hard-code a colour, size or font: they ask
--- the theme. Palettes are the four seasons plus anything registered later.
+-- the theme. The look is dark, see-through glass tinted by the season: each
+-- season is two accent colours, and every panel colour is derived from them.
+-- Colours that carry meaning (health, power, threat) are not part of a
+-- season and never change with it.
 local _, ns = ...
 
 local Events = ns.Events
@@ -8,61 +11,94 @@ local Events = ns.Events
 local Theme = {}
 ns.Theme = Theme
 
-local function hex(code)
+local MEDIA = "Interface\\AddOns\\" .. ns.name .. "\\Media\\"
+
+local function hex(code, alpha)
     return {
         tonumber(code:sub(2, 3), 16) / 255,
         tonumber(code:sub(4, 5), 16) / 255,
         tonumber(code:sub(6, 7), 16) / 255,
-        1,
+        alpha or 1,
+    }
+end
+
+--- Blend `amount` (0..1) of colour a into colour b. The result is opaque
+--- unless alpha is given.
+local function mix(a, b, amount, alpha)
+    return {
+        a[1] * amount + b[1] * (1 - amount),
+        a[2] * amount + b[2] * (1 - amount),
+        a[3] * amount + b[3] * (1 - amount),
+        alpha or 1,
     }
 end
 
 -- Every palette defines every colour token listed here.
 Theme.COLOR_TOKENS = {
-    "bg", "surface", "border", "text", "textMuted",
+    "bg", "surface", "border", "highlight", "text", "textMuted",
     "accent", "accentAlt", "success", "warning", "danger",
 }
 
+local INK = hex("#080D14") -- the dark base every panel is tinted from
+local STEEL = hex("#28303A")
+
+--- Build a full glass palette from a season's two accent colours.
+function Theme.MakePalette(accent, accentAlt)
+    if type(accent) == "string" then
+        accent = hex(accent)
+    end
+    if type(accentAlt) == "string" then
+        accentAlt = hex(accentAlt)
+    end
+    return {
+        bg = mix(accent, INK, 0.11, 0.88), -- panels: see-through
+        surface = mix(accent, hex("#161E2A"), 0.16, 0.92), -- controls on a panel
+        border = mix(accent, STEEL, 0.42),
+        highlight = { 1, 1, 1, 0.16 }, -- the lit top edge of a panel
+        text = hex("#EEF4F8"),
+        textMuted = hex("#A3B3C0"),
+        accent = accent,
+        accentAlt = accentAlt,
+        success = hex("#5FE08A"),
+        warning = hex("#FFC24B"),
+        danger = hex("#FF6B5E"),
+    }
+end
+
 local seasons = {
-    spring = {
-        bg = hex("#1F2A22"), surface = hex("#2B3A2E"), border = hex("#4F6B4A"),
-        text = hex("#F1F4E6"), textMuted = hex("#A9B79C"),
-        accent = hex("#8CC265"), accentAlt = hex("#E9A6B8"),
-        success = hex("#8CC265"), warning = hex("#E8C24A"), danger = hex("#D9594C"),
-    },
-    summer = {
-        bg = hex("#2A2416"), surface = hex("#3A321E"), border = hex("#75643A"),
-        text = hex("#FBF3DC"), textMuted = hex("#C2B48A"),
-        accent = hex("#EDB334"), accentAlt = hex("#3E9C9C"),
-        success = hex("#86B84F"), warning = hex("#EDB334"), danger = hex("#D4513F"),
-    },
-    autumn = {
-        bg = hex("#2B1D17"), surface = hex("#3B2820"), border = hex("#7A4B33"),
-        text = hex("#F6E9D8"), textMuted = hex("#BFA58D"),
-        accent = hex("#D5682E"), accentAlt = hex("#C9A227"),
-        success = hex("#8FA644"), warning = hex("#C9A227"), danger = hex("#C63D2F"),
-    },
-    winter = {
-        bg = hex("#1A222C"), surface = hex("#25303D"), border = hex("#4C6076"),
-        text = hex("#EAF0F5"), textMuted = hex("#9DAEBF"),
-        accent = hex("#7FB2D9"), accentAlt = hex("#C7D3DD"),
-        success = hex("#7FBF9A"), warning = hex("#E3C170"), danger = hex("#D8606A"),
-    },
+    spring = Theme.MakePalette("#7BD88F", "#F3A6C4"),
+    summer = Theme.MakePalette("#FFC24B", "#2EC4B6"),
+    autumn = Theme.MakePalette("#FF8A4C", "#E5B93C"),
+    winter = Theme.MakePalette("#7CC4FF", "#B9A7FF"),
 }
 
-Theme.DEFAULT_SEASON = "autumn"
+Theme.DEFAULT_SEASON = "spring"
+
+-- The bundled fonts cover Latin scripts only. Other locales keep the
+-- client's own fonts so text never turns into empty boxes.
+local CLIENT_FONT, CLIENT_NUMBER_FONT = "Fonts\\FRIZQT__.TTF", "Fonts\\ARIALN.TTF"
+local NON_LATIN = { ruRU = true, koKR = true, zhCN = true, zhTW = true }
+local bundled = not NON_LATIN[GetLocale and GetLocale() or "enUS"]
 
 -- Non-colour tokens. `shape` switches the whole UI between soft and crisp.
 local tokens = {
     space = { xs = 2, sm = 4, md = 8, lg = 12, xl = 16 },
-    border = { width = 1 },
+    border = { width = 1, rail = 3 },
     shape = "soft",
     radius = { soft = 6, crisp = 0 },
     font = {
-        -- Client fonts until an openly licensed face is chosen and bundled.
-        body = "Fonts\\FRIZQT__.TTF",
-        number = "Fonts\\ARIALN.TTF",
-        size = { sm = 10, md = 12, lg = 14, xl = 18 },
+        heading = bundled and (MEDIA .. "Fonts\\Sora-Bold.ttf") or CLIENT_FONT,
+        body = bundled and (MEDIA .. "Fonts\\DMSans-Medium.ttf") or CLIENT_FONT,
+        number = bundled and (MEDIA .. "Fonts\\DMMono-Medium.ttf") or CLIENT_NUMBER_FONT,
+        fallback = CLIENT_FONT, -- used if a bundled file fails to load
+        size = { sm = 11, md = 13, lg = 15, xl = 20 },
+    },
+    texture = {
+        -- White masks with a 6px corner radius, tinted at draw time.
+        panelFill = MEDIA .. "Textures\\panel-fill.tga",
+        panelEdge = MEDIA .. "Textures\\panel-edge.tga",
+        panelRail = MEDIA .. "Textures\\panel-rail.tga",
+        slice = 8, -- nine-slice margin of both textures
     },
 }
 
@@ -94,6 +130,10 @@ function Theme.Radius()
     return tokens.radius[tokens.shape] or 0
 end
 
+function Theme.GetShape()
+    return tokens.shape
+end
+
 function Theme.GetSeason()
     return current
 end
@@ -107,7 +147,8 @@ function Theme.ListSeasons()
     return names
 end
 
---- Add or replace a palette. Missing colour tokens are an error.
+--- Add or replace a palette. Use Theme.MakePalette(accent, accentAlt) for a
+--- glass palette, or pass every colour token yourself.
 function Theme.RegisterSeason(name, palette)
     if type(name) ~= "string" or type(palette) ~= "table" then
         error("Theme.RegisterSeason(name, palette)", 2)

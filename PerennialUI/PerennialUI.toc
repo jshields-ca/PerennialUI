@@ -17,5 +17,11 @@ Core/Theme.lua
 Core/Combat.lua
 Compat/Compat.lua
 Core/Modules.lua
+Settings/Registry.lua
+UI/Widgets.lua
+Layout/Layout.lua
+Settings/Pages.lua
+Settings/Window.lua
 Settings/Slash.lua
+Modules/Sandbox/Sandbox.lua
 Core/Boot.lua
