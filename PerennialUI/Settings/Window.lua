@@ -240,7 +240,8 @@ end
 
 local function build()
     local saved = geometry()
-    frame = Widgets.Panel(UIParent, NAME, { rail = true })
+    -- Nearly solid: a window full of text has to stay readable over the world.
+    frame = Widgets.Panel(UIParent, NAME, { rail = true, alpha = 0.97 })
     frame:SetSize(math.max(tonumber(saved.w) or 720, MIN_WIDTH), math.max(tonumber(saved.h) or 480, MIN_HEIGHT))
     frame:SetPoint("CENTER", UIParent, "CENTER", tonumber(saved.x) or 0, tonumber(saved.y) or 0)
     frame:SetFrameStrata("HIGH")
@@ -318,9 +319,18 @@ local function build()
     results:Hide()
 
     local grip = CreateFrame("Button", nil, frame)
-    grip:SetSize(14, 14)
-    grip:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -2, 2)
-    Widgets.Fill(grip, "border", nil, nil, true)
+    -- Two short strokes meeting at the corner, set in far enough to sit
+    -- inside the rounded corner.
+    grip:SetSize(16, 16)
+    grip:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -4, 4)
+    local across = Widgets.Fill(grip, "border", "ARTWORK", nil, true)
+    across:ClearAllPoints()
+    across:SetPoint("BOTTOMRIGHT")
+    across:SetSize(10, 2)
+    local up = Widgets.Fill(grip, "border", "ARTWORK", nil, true)
+    up:ClearAllPoints()
+    up:SetPoint("BOTTOMRIGHT")
+    up:SetSize(2, 10)
     grip:SetScript("OnMouseDown", function()
         frame:StartSizing("BOTTOMRIGHT")
     end)

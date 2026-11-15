@@ -72,6 +72,21 @@ local seasons = {
     winter = Theme.MakePalette("#7CC4FF", "#B9A7FF"),
 }
 
+-- Colours with a meaning. They are the same in every season.
+local fixed = {
+    health = hex("#4FD06B"),
+    mana = hex("#4C8DFF"),
+    rage = hex("#E0483C"),
+    energy = hex("#F2D14B"),
+    focus = hex("#E8944A"),
+    power = hex("#9AA7B4"), -- any other resource
+    hostile = hex("#E5534B"),
+    neutral = hex("#E8C547"),
+    friendly = hex("#4FD06B"),
+    inactive = hex("#7C8894"), -- dead, offline or tapped by someone else
+    track = { 0, 0, 0, 0.45 }, -- the empty part of a bar
+}
+
 Theme.DEFAULT_SEASON = "spring"
 
 -- The bundled fonts cover Latin scripts only. Other locales keep the
@@ -99,6 +114,7 @@ local tokens = {
         panelEdge = MEDIA .. "Textures\\panel-edge.tga",
         panelRail = MEDIA .. "Textures\\panel-rail.tga",
         slice = 8, -- nine-slice margin of both textures
+        flat = "Interface\\Buttons\\WHITE8x8", -- the client's plain white square
     },
 }
 
@@ -106,7 +122,7 @@ local current = Theme.DEFAULT_SEASON
 
 --- r, g, b, a for a colour token of the active season.
 function Theme.Color(name)
-    local color = seasons[current][name]
+    local color = seasons[current][name] or fixed[name]
     if not color then
         error("Theme: unknown colour token '" .. tostring(name) .. "'", 2)
     end

@@ -140,6 +140,30 @@ Slash.Register("bug", "print a bug report to copy into an issue", function()
     end
 end)
 
+Slash.Register("api", "check what this client supports (try it in and out of combat)", function()
+    local report = ns.Compat.Probe()
+    -- Saved so it can be read from the saved variables file after a /reload.
+    local probes = DB.Global().probes
+    if type(probes) ~= "table" then
+        probes = {}
+        DB.Global().probes = probes
+    end
+    probes[report.combat and "combat" or "rest"] = report
+    ns.Print(("Client %s: %d found, %d missing%s."):format(
+        tostring(report.version), report.present, #report.missing, report.combat and " (in combat)" or ""))
+    for i = 1, #report.missing do
+        print("  missing: " .. report.missing[i])
+    end
+    local names = {}
+    for name in pairs(report.values) do
+        names[#names + 1] = name
+    end
+    table.sort(names)
+    for i = 1, #names do
+        print("  " .. names[i] .. ": " .. report.values[names[i]])
+    end
+end)
+
 SLASH_PERENNIALUI1 = "/pui"
 SLASH_PERENNIALUI2 = "/perennial"
 SlashCmdList.PERENNIALUI = Slash.Run

@@ -60,6 +60,21 @@ end
 function Region:GetParent()
     return self.parent
 end
+function Region:SetParent(parent)
+    self.parent = parent
+end
+function Region:SetAttribute(name, value)
+    local attributes = rawget(self, "attributes") or {}
+    attributes[name] = value
+    self.attributes = attributes
+end
+function Region:GetAttribute(name)
+    local attributes = rawget(self, "attributes")
+    return attributes and attributes[name]
+end
+function Region:SetStatusBarColor(r, g, b, a)
+    self.barColor = { r, g, b, a }
+end
 function Region:SetSize(width, height)
     self.width, self.height = width, height
 end
@@ -177,8 +192,61 @@ function Stub.reset()
     _G.InCombatLockdown = function()
         return Stub.inCombat
     end
-    _G.UnitName = function()
-        return "Tester"
+    -- Units. Tests fill Stub.units[unit] with name, level, health, healthMax,
+    -- power, powerMax, powerToken, classFile, isPlayer, reaction, dead,
+    -- offline and tapped. A missing unit does not exist.
+    Stub.units = {
+        player = {
+            name = "Tester", level = 14, health = 300, healthMax = 400, power = 50, powerMax = 100,
+            powerToken = "RAGE", classFile = "WARRIOR", isPlayer = true, reaction = 5,
+        },
+    }
+    Stub.watched = {}
+    local function unitField(field, default)
+        return function(unit)
+            local data = Stub.units[unit]
+            if data and data[field] ~= nil then
+                return data[field]
+            end
+            return default
+        end
+    end
+    _G.UnitName = function(unit)
+        local data = Stub.units[unit or "player"]
+        return data and data.name or nil
+    end
+    _G.UnitExists = function(unit)
+        return Stub.units[unit] ~= nil
+    end
+    _G.UnitLevel = unitField("level", 0)
+    _G.UnitHealth = unitField("health", 0)
+    _G.UnitHealthMax = unitField("healthMax", 0)
+    _G.UnitPower = unitField("power", 0)
+    _G.UnitPowerMax = unitField("powerMax", 0)
+    _G.UnitIsPlayer = unitField("isPlayer", false)
+    _G.UnitIsDeadOrGhost = unitField("dead", false)
+    _G.UnitIsTapDenied = unitField("tapped", false)
+    _G.UnitReaction = unitField("reaction", nil)
+    _G.UnitIsConnected = function(unit)
+        local data = Stub.units[unit]
+        return data ~= nil and not data.offline
+    end
+    _G.UnitClass = function(unit)
+        local data = Stub.units[unit]
+        return data and data.classFile, data and data.classFile
+    end
+    _G.UnitPowerType = function(unit)
+        local data = Stub.units[unit]
+        return 0, data and data.powerToken
+    end
+    _G.RAID_CLASS_COLORS = { WARRIOR = { r = 0.78, g = 0.61, b = 0.43 } }
+    -- The client shows a watched frame while its unit exists.
+    _G.RegisterUnitWatch = function(frame)
+        Stub.watched[frame] = true
+        frame.shown = Stub.units[frame:GetAttribute("unit")] ~= nil
+    end
+    _G.UnregisterUnitWatch = function(frame)
+        Stub.watched[frame] = nil
     end
     _G.GetRealmName = function()
         return "Stubrealm"
@@ -206,6 +274,8 @@ function Stub.reset()
         return frame
     end
     _G.UIParent = _G.CreateFrame("Frame", "UIParent")
+    _G.PlayerFrame = _G.CreateFrame("Frame", "PlayerFrame", _G.UIParent)
+    _G.TargetFrame = _G.CreateFrame("Frame", "TargetFrame", _G.UIParent)
     _G.UIParent:SetSize(1920, 1080)
     _G.UIParent.center = { 960, 540 }
 end

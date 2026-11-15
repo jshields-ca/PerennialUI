@@ -74,7 +74,7 @@ A season is two accent colours; `Theme.MakePalette(accent, accentAlt)` derives e
 
 ### Compat (`Compat/Compat.lua`)
 
-Client detection (`isForever`, `isClassicEra`) and `Compat.Number(value, fallback)`, the guard for values the client may hide in combat. Any API that differs between clients gets a wrapper here.
+Client detection (`isForever`, `isClassicEra`) and `Compat.Number(value, fallback)`, the guard for values the client may hide in combat, with `Flag`, `SetBar` and `SetText` for flags, bars and text. `HideDefault` and `ShowDefault` hide one of the game's own frames and put it back. `Probe` (`/pui api`) reports what the running client supports. Any API that differs between clients gets a wrapper here.
 
 ### Settings (`Settings/Registry.lua`, `Pages.lua`, `Window.lua`)
 

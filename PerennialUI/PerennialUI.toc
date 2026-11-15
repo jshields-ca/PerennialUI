@@ -24,4 +24,5 @@ Settings/Pages.lua
 Settings/Window.lua
 Settings/Slash.lua
 Modules/Sandbox/Sandbox.lua
+Modules/UnitFrames/UnitFrames.lua
 Core/Boot.lua

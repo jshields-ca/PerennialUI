@@ -7,6 +7,8 @@ describe("Modules", function()
     before_each(function()
         ns, stub = Loader.load()
         Modules = ns.Modules
+        -- These specs are about the core; keep the built-in frames out of the way.
+        Modules.Disable("unitframes")
     end)
 
     local function sample(id, extra)
