@@ -27,6 +27,7 @@
         "UnitHealth",
         "UnitHealthMax",
         "UnitHealthPercent",
+        "SetPortraitTexture",
         "CurveConstants",
         "UnitIsConnected",
         "UnitIsDeadOrGhost",

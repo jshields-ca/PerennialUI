@@ -39,6 +39,7 @@ read_globals = {
     "UnitHealth",
     "UnitHealthMax",
     "UnitHealthPercent",
+    "SetPortraitTexture",
     "CurveConstants",
     "UnitIsConnected",
     "UnitIsDeadOrGhost",

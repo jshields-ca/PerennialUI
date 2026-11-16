@@ -72,6 +72,12 @@ function Region:GetAttribute(name)
     local attributes = rawget(self, "attributes")
     return attributes and attributes[name]
 end
+function Region:SetUnit(unit)
+    self.modelUnit = unit
+end
+function Region:ClearModel()
+    self.modelUnit = nil
+end
 function Region:SetFont(file, height, flags)
     self.font = { file, height, flags }
 end
@@ -195,6 +201,10 @@ function Stub.reset()
     _G.debugstack = nil
     _G.issecretvalue = nil
     _G.UnitHealthPercent = nil
+    Stub.portraits = {}
+    _G.SetPortraitTexture = function(texture, unit)
+        Stub.portraits[texture] = unit
+    end
     _G.CurveConstants = nil
 
     _G.GetTime = function()

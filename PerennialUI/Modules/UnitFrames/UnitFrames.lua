@@ -15,6 +15,8 @@ local Theme = ns.Theme
 local Widgets = ns.Widgets
 
 local HEIGHT = 48
+local CHIP_INSET = 6 -- space above and below the chip
+local LEVEL_CHIP = 26 -- chip width when it holds only the level
 local UNITS = {
     player = { title = "Player", mover = "unitframes_player", x = -260, y = -220 },
     target = { title = "Target", mover = "unitframes_target", x = 260, y = -220 },
@@ -39,6 +41,9 @@ local UnitFrames = ns.Modules.Register({
         target = true,
         hideDefault = true,
         nameStyle = "full",
+        showLevel = true,
+        playerPortrait = "none",
+        targetPortrait = "none",
         healthText = "current",
         classColor = true,
         scale = 1,
@@ -51,6 +56,27 @@ local UnitFrames = ns.Modules.Register({
         {
             key = "hideDefault", type = "toggle", label = "Hide the game's own frames",
             desc = "Only for the frames turned on above.",
+        },
+        { type = "header", label = "Portrait and level" },
+        {
+            key = "playerPortrait", type = "select", label = "Player portrait",
+            values = {
+                { value = "none", label = "Off" },
+                { value = "2d", label = "2D" },
+                { value = "3d", label = "3D" },
+            },
+        },
+        {
+            key = "targetPortrait", type = "select", label = "Target portrait",
+            values = {
+                { value = "none", label = "Off" },
+                { value = "2d", label = "2D" },
+                { value = "3d", label = "3D" },
+            },
+        },
+        {
+            key = "showLevel", type = "toggle", label = "Show level",
+            desc = "In the corner of the portrait, or on its own.",
         },
         { type = "header", label = "Look" },
         {
@@ -88,6 +114,8 @@ local UnitFrames = ns.Modules.Register({
         UNIT_LEVEL = "OnUnitEvent",
         UNIT_FACTION = "OnUnitEvent",
         UNIT_CONNECTION = "OnUnitEvent",
+        UNIT_PORTRAIT_UPDATE = "OnPortraitEvent",
+        UNIT_MODEL_CHANGED = "OnPortraitEvent",
     },
 })
 
@@ -190,39 +218,121 @@ function UnitFrames:Build(unit)
     local skin = Widgets.Panel(frame, nil, { rail = true })
     skin:SetAllPoints(frame)
 
-    -- Top row: level and name on the left, health numbers on the right. The
-    -- numbers are kept off the bar, which can be any class colour, so they
-    -- always sit on the panel and stay readable.
-    local gap = Theme.Get("space.sm")
+    -- The chip: a box at the left edge that holds the portrait, the level,
+    -- or both (the level then sits in the corner on a dark plate).
+    local chip = CreateFrame("Frame", nil, skin)
+    chip:SetPoint("TOPLEFT", skin, "TOPLEFT", left, -CHIP_INSET)
+    chip:SetHeight(HEIGHT - CHIP_INSET * 2)
+    chip.fill = chip:CreateTexture(nil, "BACKGROUND")
+    chip.fill:SetAllPoints(chip)
+    chip.fill:SetColorTexture(Theme.Color("track"))
+    chip.picture = chip:CreateTexture(nil, "ARTWORK")
+    chip.picture:SetAllPoints(chip)
+    -- A separate layer, so the level stays above a 3D model.
+    chip.overlay = CreateFrame("Frame", nil, chip)
+    chip.overlay:SetAllPoints(chip)
+    chip.overlay:SetFrameLevel((chip:GetFrameLevel() or 0) + 5)
+    chip.plate = chip.overlay:CreateTexture(nil, "ARTWORK")
+    chip.plate:SetColorTexture(Theme.Color("plate"))
+    chip.model = false -- made the first time a 3D portrait is asked for
+    frame.chip = chip
 
-    frame.level = Widgets.Text(skin, "", "sm", "textMuted", "number")
-    frame.level:SetPoint("TOPLEFT", skin, "TOPLEFT", left, -7)
+    frame.level = Widgets.Text(chip.overlay, "", "sm", "text", "number")
+    chip.plate:SetPoint("TOPLEFT", frame.level, "TOPLEFT", -2, 1)
+    chip.plate:SetPoint("BOTTOMRIGHT", frame.level, "BOTTOMRIGHT", 2, -1)
 
+    -- Top row: name on the left, health numbers on the right. The numbers
+    -- are kept off the bar, which can be any class colour, so they always
+    -- sit on the panel and stay readable.
     frame.healthText = Widgets.Text(skin, "", "sm", "text", "number")
     frame.healthText:SetPoint("TOPRIGHT", skin, "TOPRIGHT", -pad, -7)
     frame.healthText:SetJustifyH("RIGHT")
 
     -- The percentage, when both it and the current value are shown.
     frame.healthSide = Widgets.Text(skin, "", "sm", "textMuted", "number")
-    frame.healthSide:SetPoint("RIGHT", frame.healthText, "LEFT", -gap, 0)
+    frame.healthSide:SetPoint("RIGHT", frame.healthText, "LEFT", -Theme.Get("space.sm"), 0)
     frame.healthSide:SetJustifyH("RIGHT")
 
     frame.name = Widgets.Text(skin, "", "md", "text")
-    frame.name:SetPoint("TOPLEFT", frame.level, "TOPRIGHT", gap, 1)
-    frame.name:SetPoint("RIGHT", frame.healthSide, "LEFT", -gap, 0)
     frame.name:SetWordWrap(false)
 
     frame.health = Widgets.Bar(skin, "health")
-    frame.health:SetPoint("TOPLEFT", skin, "TOPLEFT", left, -25)
-    frame.health:SetPoint("TOPRIGHT", skin, "TOPRIGHT", -pad, -25)
     frame.health:SetHeight(10)
 
+    frame.skin = skin
     frame.power = Widgets.Bar(skin, "power")
     frame.power:SetPoint("TOPLEFT", frame.health, "BOTTOMLEFT", 0, -Theme.Get("space.xs"))
     frame.power:SetPoint("TOPRIGHT", frame.health, "BOTTOMRIGHT", 0, -Theme.Get("space.xs"))
     frame.power:SetHeight(4)
 
     return frame
+end
+
+--- Place the chip, name and health bar for the current settings: the chip
+--- is wide for a portrait, narrow for a level alone, and gone when neither
+--- is shown. Sets frame.chip.mode to "none", "2d" or "3d".
+function UnitFrames:Arrange(unit)
+    local frame, db = self.frames[unit], self.db
+    local chip, skin = frame.chip, frame.skin
+    local pad, gap = Theme.Get("space.md"), Theme.Get("space.sm")
+    local left = pad + Theme.Get("border.rail")
+
+    local mode = db[unit .. "Portrait"]
+    if mode == "3d" and not chip.model then
+        chip.model = Compat.CreateModel(chip) or false
+        if chip.model then
+            chip.model:SetAllPoints(chip)
+        end
+    end
+    if mode == "3d" and not chip.model then
+        mode = "2d" -- this client cannot draw a model here
+    end
+    chip.mode = mode
+
+    local portrait, showLevel = mode ~= "none", db.showLevel and true or false
+    local width = portrait and (HEIGHT - CHIP_INSET * 2) or LEVEL_CHIP
+    chip:SetWidth(width)
+    chip:SetShown(portrait or showLevel)
+    chip.picture:SetShown(mode == "2d")
+    if chip.model then
+        chip.model:SetShown(mode == "3d")
+    end
+    chip.plate:SetShown(portrait and showLevel)
+    frame.level:SetShown(showLevel)
+    frame.level:ClearAllPoints()
+    if portrait then
+        frame.level:SetPoint("BOTTOMRIGHT", chip, "BOTTOMRIGHT", -2, 2)
+    else
+        frame.level:SetPoint("CENTER", chip, "CENTER", 0, 0)
+    end
+
+    local x = left + ((portrait or showLevel) and (width + gap) or 0)
+    frame.name:ClearAllPoints()
+    frame.name:SetPoint("TOPLEFT", skin, "TOPLEFT", x, -6)
+    frame.name:SetPoint("RIGHT", frame.healthSide, "LEFT", -gap, 0)
+    frame.health:ClearAllPoints()
+    frame.health:SetPoint("TOPLEFT", skin, "TOPLEFT", x, -25)
+    frame.health:SetPoint("TOPRIGHT", skin, "TOPRIGHT", -pad, -25)
+end
+
+--- Draw the unit in the chip. Kept apart from Render: a portrait changes
+--- rarely, and resetting a 3D model on every health change would flicker.
+function UnitFrames:UpdatePortrait(unit)
+    local frame = self.frames and self.frames[unit]
+    if not frame then
+        return
+    end
+    local chip = frame.chip
+    local exists = Compat.Flag(UnitExists(unit), true)
+    if chip.mode == "2d" then
+        if not (exists and Compat.SetPortrait(chip.picture, unit)) then
+            chip.picture:SetTexture(nil)
+        end
+    elseif chip.mode == "3d" then
+        if not (exists and Compat.SetModelUnit(chip.model, unit)) then
+            Compat.ClearModel(chip.model)
+        end
+    end
 end
 
 -- First and last name where there is a last name, otherwise the first alone.
@@ -309,6 +419,13 @@ end
 function UnitFrames:UpdateAll()
     for i = 1, #ORDER do
         self:Update(ORDER[i])
+        self:UpdatePortrait(ORDER[i])
+    end
+end
+
+function UnitFrames:OnPortraitEvent(_, unit)
+    if UNITS[unit] then
+        self:UpdatePortrait(unit)
     end
 end
 
@@ -320,6 +437,7 @@ end
 
 function UnitFrames:OnTargetChanged()
     self:Update("target")
+    self:UpdatePortrait("target")
 end
 
 --- Build the frames if needed and bring size, visibility and the game's own
@@ -351,6 +469,7 @@ function UnitFrames:Apply()
             local want = self.active and db[unit] and true or false
             frame:SetSize(db.width, HEIGHT)
             frame:SetScale(db.scale)
+            self:Arrange(unit)
             if unit == "target" and want and not ns.state.testMode then
                 -- The client shows the frame while a target exists, even in combat.
                 RegisterUnitWatch(frame)

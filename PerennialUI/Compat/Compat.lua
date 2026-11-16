@@ -126,6 +126,48 @@ function Compat.ClassColor(classFile)
     return color.r, color.g, color.b
 end
 
+--- Draw a unit's flat portrait into a texture. Returns true if it was drawn.
+--- TODO(verify): SetPortraitTexture on the Forever client.
+function Compat.SetPortrait(texture, unit)
+    if type(SetPortraitTexture) ~= "function" then
+        return false
+    end
+    return (pcall(SetPortraitTexture, texture, unit))
+end
+
+--- A frame that can draw a unit's 3D model, or nil if the client has none.
+--- TODO(verify): the PlayerModel frame type and its methods on Forever.
+function Compat.CreateModel(parent)
+    local ok, model = pcall(CreateFrame, "PlayerModel", nil, parent)
+    if ok and type(model) == "table" then
+        return model
+    end
+    return nil
+end
+
+local function setModelUnit(model, unit)
+    model:SetUnit(unit)
+    if model.SetPortraitZoom then
+        model:SetPortraitZoom(1) -- head and shoulders
+    end
+end
+
+--- Show a unit in a model frame, framed as a portrait. Returns true if the
+--- client accepted it.
+function Compat.SetModelUnit(model, unit)
+    if not model then
+        return false
+    end
+    return (pcall(setModelUnit, model, unit))
+end
+
+--- Empty a model frame.
+function Compat.ClearModel(model)
+    if model and model.ClearModel then
+        pcall(model.ClearModel, model)
+    end
+end
+
 -- The game's own frames that a module can stand in for, by key.
 local DEFAULT_FRAMES = { player = "PlayerFrame", target = "TargetFrame" }
 local originalParent = {}
@@ -172,12 +214,13 @@ local PROBE_GLOBALS = {
     "UnitIsDeadOrGhost", "UnitIsConnected", "UnitIsTapDenied",
     "RAID_CLASS_COLORS", "PlayerFrame", "TargetFrame", "C_AddOns.GetAddOnMetadata",
     "C_CurveUtil", "C_Secrets", "SecureUnitButton_OnLoad",
-    "CurveConstants.ScaleTo100", "AbbreviateNumbers",
+    "CurveConstants.ScaleTo100", "AbbreviateNumbers", "SetPortraitTexture",
 }
 local PROBE_METHODS = {
     Texture = { "SetTextureSliceMargins", "ClearTextureSlice", "SetColorTexture" },
     StatusBar = { "SetStatusBarTexture", "SetStatusBarColor", "SetMinMaxValues", "SetValue" },
     Frame = { "SetAttribute", "RegisterUnitEvent", "SetClampedToScreen" },
+    PlayerModel = { "SetUnit", "SetPortraitZoom", "ClearModel" },
 }
 local PROBE_UNIT_VALUES = { "UnitHealth", "UnitHealthMax", "UnitPower", "UnitName", "UnitLevel" }
 
@@ -272,7 +315,10 @@ function Compat.Probe()
         note(PROBE_GLOBALS[i], lookup(PROBE_GLOBALS[i]) ~= nil)
     end
     local frame = CreateFrame("Frame")
-    local samples = { Frame = frame, Texture = frame:CreateTexture(), StatusBar = CreateFrame("StatusBar") }
+    local samples = {
+        Frame = frame, Texture = frame:CreateTexture(), StatusBar = CreateFrame("StatusBar"),
+        PlayerModel = Compat.CreateModel(frame) or {},
+    }
     for kind, methods in pairs(PROBE_METHODS) do
         for i = 1, #methods do
             note(kind .. ":" .. methods[i], samples[kind][methods[i]] ~= nil)

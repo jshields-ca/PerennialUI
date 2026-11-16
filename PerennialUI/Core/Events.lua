@@ -77,7 +77,8 @@ local function add(owner, event, fn, game)
     list[#list + 1] = { owner = owner, fn = fn }
     if game and not isGameEvent[event] then
         isGameEvent[event] = true
-        frame:RegisterEvent(event)
+        -- An event this client does not have must not stop the others.
+        pcall(frame.RegisterEvent, frame, event)
     end
 end
 

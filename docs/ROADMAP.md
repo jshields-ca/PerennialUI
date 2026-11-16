@@ -42,7 +42,7 @@ Status: in progress.
 | First-login setup wizard: season, frame and nameplate style, placement | To do | Last, once there is something to place |
 | Profile auto-switch by spec | To do | Check what "spec" means on Forever first |
 | Share-string compression | To do | Vendor LibDeflate (zlib licence) if strings get long |
-| Proof module: player and target frames from theme tokens | Done, run in game | `Modules/UnitFrames`. 2026-11-15: clicks, the unit menu, bars and numbers in combat, and the game's frames coming back when it is turned off. Percent health text confirmed 2026-11-16. Last names confirmed 2026-11-16. Health numbers above the bar are **not yet run in game** |
+| Proof module: player and target frames from theme tokens | Done, run in game | `Modules/UnitFrames`. 2026-11-15: clicks, the unit menu, bars and numbers in combat, and the game's frames coming back when it is turned off. Percent health text confirmed 2026-11-16. Last names confirmed 2026-11-16. Health numbers above the bar confirmed 2026-11-16. The level chip and 2D/3D portraits are **not yet run in game** |
 
 ## Phase 1: Daily driver
 

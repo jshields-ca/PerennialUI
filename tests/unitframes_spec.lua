@@ -242,6 +242,67 @@ describe("Unit frames", function()
         assert.equal(0, #ns.Safety.GetLog())
     end)
 
+    describe("chip", function()
+        it("shows the level on its own by default", function()
+            local frame = frames.player
+            assert.equal("none", frame.chip.mode)
+            assert.is_true(frame.chip:IsShown())
+            assert.is_true(frame.level:IsShown())
+            assert.is_false(frame.chip.plate:IsShown())
+            assert.equal(26, frame.chip:GetWidth())
+        end)
+
+        it("goes away when neither the level nor a portrait is shown", function()
+            ns.Settings.Set("unitframes", "showLevel", false)
+            assert.is_false(frames.player.chip:IsShown())
+            assert.is_false(frames.player.level:IsShown())
+        end)
+
+        it("draws a 2D portrait for one frame only, with the level on a plate", function()
+            ns.Settings.Set("unitframes", "playerPortrait", "2d")
+            local chip = frames.player.chip
+            assert.equal("2d", chip.mode)
+            assert.equal(36, chip:GetWidth())
+            assert.is_true(chip.picture:IsShown())
+            assert.is_true(chip.plate:IsShown())
+            assert.equal("player", stub.portraits[chip.picture])
+            assert.equal("none", frames.target.chip.mode)
+            ns.Settings.Set("unitframes", "showLevel", false)
+            assert.is_true(chip:IsShown())
+            assert.is_false(chip.plate:IsShown())
+        end)
+
+        it("draws a 3D portrait and follows the target", function()
+            ns.Settings.Set("unitframes", "targetPortrait", "3d")
+            local chip = frames.target.chip
+            assert.equal("3d", chip.mode)
+            assert.is_nil(rawget(chip.model, "modelUnit"))
+            target(boar)
+            assert.equal("target", chip.model.modelUnit)
+            assert.is_false(chip.picture:IsShown())
+            target(nil)
+            assert.is_nil(rawget(chip.model, "modelUnit"))
+        end)
+
+        it("falls back to 2D when the client cannot make a model", function()
+            ns.Compat.CreateModel = function()
+                return nil
+            end
+            ns.Settings.Set("unitframes", "playerPortrait", "3d")
+            assert.equal("2d", frames.player.chip.mode)
+            assert.equal(0, #ns.Safety.GetLog())
+        end)
+
+        it("redraws the portrait when the client says it changed", function()
+            ns.Settings.Set("unitframes", "playerPortrait", "2d")
+            stub.portraits = {}
+            stub.fire("UNIT_PORTRAIT_UPDATE", "party1")
+            assert.is_nil(stub.portraits[frames.player.chip.picture])
+            stub.fire("UNIT_PORTRAIT_UPDATE", "player")
+            assert.equal("player", stub.portraits[frames.player.chip.picture])
+        end)
+    end)
+
     it("follows health changes for its own units only", function()
         stub.units.player.health = 120
         stub.fire("UNIT_HEALTH", "party1")
