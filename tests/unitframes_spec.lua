@@ -242,12 +242,6 @@ describe("Unit frames", function()
         assert.equal(0, #ns.Safety.GetLog())
     end)
 
-    it("outlines the text on the health bar so it reads on any class colour", function()
-        assert.equal("OUTLINE", select(3, frames.player.healthText:GetFont()))
-        assert.equal("OUTLINE", select(3, frames.player.healthSide:GetFont()))
-        assert.equal("", select(3, frames.player.name:GetFont()))
-    end)
-
     it("follows health changes for its own units only", function()
         stub.units.player.health = 120
         stub.fire("UNIT_HEALTH", "party1")
@@ -308,7 +302,7 @@ describe("Unit frames", function()
         stub.units.player.health = SECRET
         ns.Settings.Set("unitframes", "healthText", "percent")
         assert.equal("75%", frames.player.healthText:GetText())
-        -- "Both" puts the percentage at the left end and the value at the right.
+        -- "Both" puts the percentage to the left of the value.
         ns.Settings.Set("unitframes", "healthText", "both")
         assert.equal(SECRET, frames.player.healthText.text)
         assert.equal("75%", frames.player.healthSide:GetText())

@@ -102,8 +102,8 @@ function UnitFrames.FormatNumber(value)
 end
 
 --- The health text for a mode, or nil when the numbers are not readable.
---- "both" returns two texts: current health for the right end of the bar,
---- then the percentage for the left end.
+--- "both" returns two texts: current health, then the percentage that is
+--- shown to its left.
 function UnitFrames.HealthText(mode, health, healthMax)
     if mode == "none" then
         return ""
@@ -190,33 +190,32 @@ function UnitFrames:Build(unit)
     local skin = Widgets.Panel(frame, nil, { rail = true })
     skin:SetAllPoints(frame)
 
+    -- Top row: level and name on the left, health numbers on the right. The
+    -- numbers are kept off the bar, which can be any class colour, so they
+    -- always sit on the panel and stay readable.
+    local gap = Theme.Get("space.sm")
+
     frame.level = Widgets.Text(skin, "", "sm", "textMuted", "number")
-    frame.level:SetPoint("TOPRIGHT", skin, "TOPRIGHT", -pad, -7)
-    frame.level:SetJustifyH("RIGHT")
+    frame.level:SetPoint("TOPLEFT", skin, "TOPLEFT", left, -7)
+
+    frame.healthText = Widgets.Text(skin, "", "sm", "text", "number")
+    frame.healthText:SetPoint("TOPRIGHT", skin, "TOPRIGHT", -pad, -7)
+    frame.healthText:SetJustifyH("RIGHT")
+
+    -- The percentage, when both it and the current value are shown.
+    frame.healthSide = Widgets.Text(skin, "", "sm", "textMuted", "number")
+    frame.healthSide:SetPoint("RIGHT", frame.healthText, "LEFT", -gap, 0)
+    frame.healthSide:SetJustifyH("RIGHT")
 
     frame.name = Widgets.Text(skin, "", "md", "text")
-    frame.name:SetPoint("TOPLEFT", skin, "TOPLEFT", left, -6)
-    frame.name:SetPoint("RIGHT", frame.level, "LEFT", -Theme.Get("space.sm"), 0)
+    frame.name:SetPoint("TOPLEFT", frame.level, "TOPRIGHT", gap, 1)
+    frame.name:SetPoint("RIGHT", frame.healthSide, "LEFT", -gap, 0)
     frame.name:SetWordWrap(false)
 
     frame.health = Widgets.Bar(skin, "health")
-    frame.health:SetPoint("TOPLEFT", skin, "TOPLEFT", left, -23)
-    frame.health:SetPoint("TOPRIGHT", skin, "TOPRIGHT", -pad, -23)
-    frame.health:SetHeight(13)
-
-    -- Outlined: the bar behind may be any class colour, or the dark track.
-    frame.healthText = Widgets.Text(frame.health, "", "sm", "textOnBar", "number", true)
-    frame.healthText:SetPoint("RIGHT", frame.health, "RIGHT", -Theme.Get("space.sm"), 0)
-    frame.healthText:SetJustifyH("RIGHT")
-    frame.healthText:SetShadowOffset(1, -1)
-    frame.healthText:SetShadowColor(0, 0, 0, 0.8)
-
-    -- The percentage, when both it and the current value are shown.
-    frame.healthSide = Widgets.Text(frame.health, "", "sm", "textOnBar", "number", true)
-    frame.healthSide:SetPoint("LEFT", frame.health, "LEFT", Theme.Get("space.sm"), 0)
-    frame.healthSide:SetJustifyH("LEFT")
-    frame.healthSide:SetShadowOffset(1, -1)
-    frame.healthSide:SetShadowColor(0, 0, 0, 0.8)
+    frame.health:SetPoint("TOPLEFT", skin, "TOPLEFT", left, -25)
+    frame.health:SetPoint("TOPRIGHT", skin, "TOPRIGHT", -pad, -25)
+    frame.health:SetHeight(10)
 
     frame.power = Widgets.Bar(skin, "power")
     frame.power:SetPoint("TOPLEFT", frame.health, "BOTTOMLEFT", 0, -Theme.Get("space.xs"))

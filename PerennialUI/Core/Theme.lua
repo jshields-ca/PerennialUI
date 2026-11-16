@@ -85,7 +85,6 @@ local fixed = {
     friendly = hex("#4FD06B"),
     inactive = hex("#7C8894"), -- dead, offline or tapped by someone else
     track = { 0, 0, 0, 0.45 }, -- the empty part of a bar
-    textOnBar = hex("#FFFFFF"), -- text over a bar; drawn with a dark outline
 }
 
 Theme.DEFAULT_SEASON = "spring"

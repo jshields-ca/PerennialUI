@@ -27,25 +27,22 @@ end)
 
 --- Apply a theme font. role is heading, body or number; size a font.size token.
 --- Falls back to a client font if the bundled file cannot be loaded.
---- outline draws a dark edge round each letter, for text that sits on a
---- colour it does not choose, such as a class-coloured bar.
-function Widgets.SetFont(target, role, size, outline)
+function Widgets.SetFont(target, role, size)
     local height = Theme.Get("font.size." .. size)
-    local flags = outline and "OUTLINE" or ""
-    target:SetFont(Theme.Get("font." .. role), height, flags)
+    target:SetFont(Theme.Get("font." .. role), height, "")
     if not target:GetFont() then
-        target:SetFont(Theme.Get("font.fallback"), height, flags)
+        target:SetFont(Theme.Get("font.fallback"), height, "")
     end
 end
 
 --- A font string. size is a font.size token (sm, md, lg, xl); color a colour
 --- token; role is heading, body or number (large sizes default to heading).
-function Widgets.Text(parent, text, size, color, role, outline)
+function Widgets.Text(parent, text, size, color, role)
     local label = parent:CreateFontString(nil, "OVERLAY")
     size, color = size or "md", color or "text"
     role = role or ((size == "lg" or size == "xl") and "heading" or "body")
     styled(function()
-        Widgets.SetFont(label, role, size, outline)
+        Widgets.SetFont(label, role, size)
         label:SetTextColor(Theme.Color(color))
     end)
     label:SetJustifyH("LEFT")
