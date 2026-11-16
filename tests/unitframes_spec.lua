@@ -132,6 +132,15 @@ describe("Compat for hidden values", function()
         assert.equal("40%", label:GetText())
     end)
 
+    it("reports how the client gives names", function()
+        _G.C_Example = { GetSurname = function() end, Other = function() end }
+        local notes = table.concat(Compat.Probe().notes, "\n")
+        assert.is_truthy(notes:find('UnitName(player): "Tester"', 1, true))
+        assert.is_truthy(notes:find("name function: C_Example.GetSurname", 1, true))
+        assert.is_falsy(notes:find("Other", 1, true))
+        _G.C_Example = nil
+    end)
+
     it("saves the report from /pui api", function()
         ns.Slash.Run("api")
         assert.equal("table", type(_G.PerennialUIDB.global.probes.rest))
@@ -171,7 +180,7 @@ describe("Unit frames", function()
             assert.equal("", UF.HealthText("none", 50, 200))
             assert.equal("50", UF.HealthText("current", 50, 200))
             assert.equal("25%", UF.HealthText("percent", 50, 200))
-            assert.equal("50  25%", UF.HealthText("both", 50, 200))
+            assert.same({ "50", "25%" }, { UF.HealthText("both", 50, 200) })
         end)
 
         it("has no health text when the numbers are not readable", function()
@@ -272,9 +281,12 @@ describe("Unit frames", function()
         stub.units.player.health = SECRET
         ns.Settings.Set("unitframes", "healthText", "percent")
         assert.equal("75%", frames.player.healthText:GetText())
-        -- The fake hidden value cannot be formatted, so "both" falls back to it.
+        -- "Both" puts the percentage at the left end and the value at the right.
         ns.Settings.Set("unitframes", "healthText", "both")
         assert.equal(SECRET, frames.player.healthText.text)
+        assert.equal("75%", frames.player.healthSide:GetText())
+        ns.Settings.Set("unitframes", "healthText", "current")
+        assert.equal("", frames.player.healthSide:GetText())
         assert.equal(0, #ns.Safety.GetLog())
     end)
 

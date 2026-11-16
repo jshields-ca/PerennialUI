@@ -162,6 +162,9 @@ Slash.Register("api", "check what this client supports (try it in and out of com
     for i = 1, #keys do
         print("  " .. keys[i] .. ": " .. report.values[keys[i]])
     end
+    for i = 1, #report.notes do
+        print("  " .. report.notes[i])
+    end
 end)
 
 SLASH_PERENNIALUI1 = "/pui"

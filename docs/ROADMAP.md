@@ -42,7 +42,7 @@ Status: in progress.
 | First-login setup wizard: season, frame and nameplate style, placement | To do | Last, once there is something to place |
 | Profile auto-switch by spec | To do | Check what "spec" means on Forever first |
 | Share-string compression | To do | Vendor LibDeflate (zlib licence) if strings get long |
-| Proof module: player and target frames from theme tokens | Done, run in game | `Modules/UnitFrames`. 2026-11-15: clicks, the unit menu, bars and numbers in combat, and the game's frames coming back when it is turned off. Percent health text is written but **not yet run in game** |
+| Proof module: player and target frames from theme tokens | Done, run in game | `Modules/UnitFrames`. 2026-11-15: clicks, the unit menu, bars and numbers in combat, and the game's frames coming back when it is turned off. Percent health text confirmed 2026-11-16. Last names are **not shown yet**: see open questions |
 
 ## Phase 1: Daily driver
 
@@ -138,7 +138,8 @@ Classic Era, Hardcore and Season of Discovery use a different API. The shims go 
 
 - **Unit frames:** the player and target frames are our own code. Before party and raid frames, decide whether to keep going that way or move to oUF, now that our own frames work under hidden values (2026-11-15).
 - **Unit frame events:** the frames listen to unit events for every unit and ignore the ones they do not show. Switch to per-unit registration if that shows up in raids.
-- **Hidden values:** `issecretvalue` is confirmed. Still open: whether text can be built from a hidden number (percent health text, and short forms such as 12.3k), since current health is never readable. `/pui api` now reports this.
+- **Hidden values:** `issecretvalue` is confirmed. Text can be built from a hidden number with `string.format` (confirmed 2026-11-16). Still open: short forms such as 12.3k for hidden numbers.
+- **Last names:** Forever characters have a first and a last name, and `UnitName` gives only the first. `/pui api` now lists what the client's name functions return. Once known, add a name setting to unit frames (first and last by default).
 - **`/pui`:** check that no popular addon already uses this slash command.
 - **Glass details:** a top-to-bottom gradient inside panels and a softer drop shadow are in the mock-ups but not yet drawn in game.
 - **Non-Latin fonts:** Russian, Korean and Chinese clients fall back to the game's fonts. Pick open fonts for those scripts later.

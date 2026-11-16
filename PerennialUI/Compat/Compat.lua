@@ -94,15 +94,14 @@ end
 --- Format values that may be hidden and put the result in a font string,
 --- without Lua ever looking at them. Returns true if the text was set; on
 --- false the font string is unchanged, so the caller shows something else.
---- TODO(verify): that Forever's string.format accepts hidden values.
+--- Forever's string.format accepts hidden values (seen in game).
 function Compat.SetFormatted(label, pattern, ...)
     return (pcall(setFormatted, label, pattern, ...))
 end
 
 --- A unit's health as 0 to 100, from the client. It may be hidden, so hand
 --- it to SetFormatted. Nil when the client cannot give it.
---- TODO(verify): the arguments (unit, use predicted health, scale) and that
---- CurveConstants.ScaleTo100 gives 0 to 100. Check that full health reads 100%.
+--- Checked in game on 1.60.1: full health reads 100.
 function Compat.HealthPercent(unit)
     local scale = CurveConstants and CurveConstants.ScaleTo100
     if type(UnitHealthPercent) ~= "function" or scale == nil then
@@ -182,6 +181,66 @@ local PROBE_METHODS = {
 }
 local PROBE_UNIT_VALUES = { "UnitHealth", "UnitHealthMax", "UnitPower", "UnitName", "UnitLevel" }
 
+-- Ways the client might give a character's name. Forever characters have a
+-- first and a last name; /pui api shows what each of these returns.
+local PROBE_NAME_READS = { "UnitName", "UnitFullName", "UnitPVPName", "GetUnitName" }
+local PROBE_NAME_WORDS = { "surname", "lastname", "familyname", "fullname" }
+
+local function describe(value)
+    if Compat.IsHidden(value) then
+        return "hidden"
+    end
+    local kind = type(value)
+    if kind == "string" then
+        return '"' .. value .. '"'
+    elseif kind == "number" or kind == "boolean" or kind == "nil" then
+        return tostring(value)
+    end
+    return kind
+end
+
+local function describeAll(ok, ...)
+    if not ok then
+        return "error"
+    end
+    local parts = {}
+    for i = 1, select("#", ...) do
+        parts[i] = describe((select(i, ...)))
+    end
+    return #parts > 0 and table.concat(parts, ", ") or "nothing"
+end
+
+local function nameLike(key)
+    if type(key) ~= "string" then
+        return false
+    end
+    local lower = key:lower()
+    for i = 1, #PROBE_NAME_WORDS do
+        if lower:find(PROBE_NAME_WORDS[i], 1, true) then
+            return true
+        end
+    end
+    return false
+end
+
+-- Client functions whose names suggest they deal with a last or full name.
+local function nameFunctions()
+    local found = {}
+    for key, value in pairs(_G) do
+        if type(value) == "function" and nameLike(key) then
+            found[#found + 1] = key
+        elseif type(value) == "table" and type(key) == "string" and key:sub(1, 2) == "C_" then
+            for inner, fn in pairs(value) do
+                if type(fn) == "function" and nameLike(inner) then
+                    found[#found + 1] = key .. "." .. inner
+                end
+            end
+        end
+    end
+    table.sort(found)
+    return found
+end
+
 local function lookup(path)
     local value = _G
     for part in path:gmatch("[^%.]+") do
@@ -200,7 +259,7 @@ function Compat.Probe()
     local report = {
         version = Compat.version, build = Compat.build, interface = Compat.interface,
         combat = InCombatLockdown() and true or false,
-        present = 0, missing = {}, values = {},
+        present = 0, missing = {}, values = {}, notes = {},
     }
     local function note(name, found)
         if found then
@@ -233,6 +292,20 @@ function Compat.Probe()
     end
     -- Whether text can be built from a value Lua cannot read.
     report.values["format(UnitHealth)"] = pcall(string.format, "%d", UnitHealth("player")) and "ok" or "refused"
+    for i = 1, #PROBE_NAME_READS do
+        local read = lookup(PROBE_NAME_READS[i])
+        if type(read) == "function" then
+            report.notes[#report.notes + 1] = PROBE_NAME_READS[i] .. "(player): "
+                .. describeAll(pcall(read, "player", true))
+        end
+    end
+    local found = nameFunctions()
+    for i = 1, math.min(#found, 25) do
+        report.notes[#report.notes + 1] = "name function: " .. found[i]
+    end
+    if #found == 0 then
+        report.notes[#report.notes + 1] = "name functions: none found"
+    end
     table.sort(report.missing)
     return report
 end

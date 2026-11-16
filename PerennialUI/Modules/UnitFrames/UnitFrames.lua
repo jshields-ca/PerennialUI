@@ -94,6 +94,8 @@ function UnitFrames.FormatNumber(value)
 end
 
 --- The health text for a mode, or nil when the numbers are not readable.
+--- "both" returns two texts: current health for the right end of the bar,
+--- then the percentage for the left end.
 function UnitFrames.HealthText(mode, health, healthMax)
     if mode == "none" then
         return ""
@@ -105,7 +107,7 @@ function UnitFrames.HealthText(mode, health, healthMax)
     if mode == "percent" then
         return percent
     elseif mode == "both" then
-        return UnitFrames.FormatNumber(health) .. "  " .. percent
+        return UnitFrames.FormatNumber(health), percent
     end
     return UnitFrames.FormatNumber(health)
 end
@@ -196,6 +198,13 @@ function UnitFrames:Build(unit)
     frame.healthText:SetShadowOffset(1, -1)
     frame.healthText:SetShadowColor(0, 0, 0, 0.8)
 
+    -- The percentage, when both it and the current value are shown.
+    frame.healthSide = Widgets.Text(frame.health, "", "sm", "text", "number")
+    frame.healthSide:SetPoint("LEFT", frame.health, "LEFT", Theme.Get("space.sm"), 0)
+    frame.healthSide:SetJustifyH("LEFT")
+    frame.healthSide:SetShadowOffset(1, -1)
+    frame.healthSide:SetShadowColor(0, 0, 0, 0.8)
+
     frame.power = Widgets.Bar(skin, "power")
     frame.power:SetPoint("TOPLEFT", frame.health, "BOTTOMLEFT", 0, -Theme.Get("space.xs"))
     frame.power:SetPoint("TOPRIGHT", frame.health, "BOTTOMRIGHT", 0, -Theme.Get("space.xs"))
@@ -224,23 +233,26 @@ function UnitFrames:Render(unit, state)
     frame.health:SetColor(r, g, b)
 
     local dead, offline = Compat.Flag(state.dead, false), isOffline(state)
+    frame.healthSide:SetText("")
     if dead or offline then
         Compat.SetBar(frame.health, 0, 1)
         frame.healthText:SetText(offline and "Offline" or "Dead")
     else
         Compat.SetBar(frame.health, state.health, state.healthMax)
         local health, healthMax = Compat.Number(state.health), Compat.Number(state.healthMax)
-        local text = UnitFrames.HealthText(db.healthText, health, healthMax)
+        local text, side = UnitFrames.HealthText(db.healthText, health, healthMax)
         if text then
             frame.healthText:SetText(text)
+            frame.healthSide:SetText(side or "")
         else
             -- Not readable (the usual case on Forever): the client builds the
-            -- text. If it cannot, show the current value on its own.
+            -- text, which works on 1.60.1 (seen in game). If it cannot, show
+            -- the current value on its own.
             local mode, shown = db.healthText, false
             if mode == "percent" then
                 shown = Compat.SetFormatted(frame.healthText, "%.0f%%", state.healthPercent)
             elseif mode == "both" then
-                shown = Compat.SetFormatted(frame.healthText, "%d  %.0f%%", state.health, state.healthPercent)
+                Compat.SetFormatted(frame.healthSide, "%.0f%%", state.healthPercent)
             end
             if not shown then
                 Compat.SetText(frame.healthText, state.health, "")
