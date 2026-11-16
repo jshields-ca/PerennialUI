@@ -85,7 +85,9 @@ local fixed = {
     friendly = hex("#4FD06B"),
     inactive = hex("#7C8894"), -- dead, offline or tapped by someone else
     track = { 0, 0, 0, 0.45 }, -- the empty part of a bar
-    plate = { 0, 0, 0, 0.65 }, -- behind text that sits on a picture
+    roleTank = hex("#4A9EFF"),
+    roleHealer = hex("#4CD27A"),
+    roleDamage = hex("#E5604D"),
 }
 
 Theme.DEFAULT_SEASON = "spring"

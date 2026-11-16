@@ -99,7 +99,8 @@ describe("Settings registry", function()
         local found = Settings.Search("health")
         assert.equal(4, #found) -- two on the test page, two on the unit frames page
         assert.equal(1, #Settings.Search("HEALTH glow"))
-        assert.equal(4, #Settings.Search("raid frames")) -- three options plus the Modules page toggle
+        -- three options, the Modules page toggle, and "Raid marker" on the unit frames page
+        assert.equal(5, #Settings.Search("raid frames"))
         assert.equal(0, #Settings.Search("debug"))
         Settings.SetAdvanced(true)
         assert.equal(1, #Settings.Search("debug"))

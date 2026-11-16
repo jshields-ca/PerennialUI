@@ -242,34 +242,25 @@ describe("Unit frames", function()
         assert.equal(0, #ns.Safety.GetLog())
     end)
 
-    describe("chip", function()
-        it("shows the level on its own by default", function()
+    describe("portrait", function()
+        it("is off by default, so the rows use the full width", function()
             local frame = frames.player
             assert.equal("none", frame.chip.mode)
-            assert.is_true(frame.chip:IsShown())
-            assert.is_true(frame.level:IsShown())
-            assert.is_false(frame.chip.plate:IsShown())
-            assert.equal(26, frame.chip:GetWidth())
+            assert.is_false(frame.chip:IsShown())
+            assert.equal(64, frame:GetHeight())
+            assert.equal(260, frame:GetWidth())
         end)
 
-        it("goes away when neither the level nor a portrait is shown", function()
-            ns.Settings.Set("unitframes", "showLevel", false)
-            assert.is_false(frames.player.chip:IsShown())
-            assert.is_false(frames.player.level:IsShown())
-        end)
-
-        it("draws a 2D portrait for one frame only, with the level on a plate", function()
+        it("draws a 2D portrait for one frame only", function()
+            local before = frames.player.contentX
             ns.Settings.Set("unitframes", "playerPortrait", "2d")
             local chip = frames.player.chip
             assert.equal("2d", chip.mode)
-            assert.equal(36, chip:GetWidth())
-            assert.is_true(chip.picture:IsShown())
-            assert.is_true(chip.plate:IsShown())
-            assert.equal("player", stub.portraits[chip.picture])
-            assert.equal("none", frames.target.chip.mode)
-            ns.Settings.Set("unitframes", "showLevel", false)
             assert.is_true(chip:IsShown())
-            assert.is_false(chip.plate:IsShown())
+            assert.is_true(chip.picture:IsShown())
+            assert.equal("player", stub.portraits[chip.picture])
+            assert.is_true(frames.player.contentX > before)
+            assert.equal("none", frames.target.chip.mode)
         end)
 
         it("draws a 3D portrait and follows the target", function()
@@ -300,6 +291,92 @@ describe("Unit frames", function()
             assert.is_nil(stub.portraits[frames.player.chip.picture])
             stub.fire("UNIT_PORTRAIT_UPDATE", "player")
             assert.equal("player", stub.portraits[frames.player.chip.picture])
+        end)
+    end)
+
+    describe("name row", function()
+        it("shows only the level for a player on their own", function()
+            local frame = frames.player
+            assert.is_true(frame.level.on)
+            assert.equal("14", frame.level:GetText())
+            assert.is_false(frame.leader.on)
+            assert.is_false(frame.role.on)
+            assert.is_false(frame.combat.on)
+            assert.is_false(frame.rest.on)
+            assert.is_false(frame.tag.on)
+            assert.is_false(frame.marker.on)
+        end)
+
+        it("hides the level when it is turned off", function()
+            ns.Settings.Set("unitframes", "showLevel", false)
+            assert.is_false(frames.player.level.on)
+            assert.is_false(frames.player.level:IsShown())
+        end)
+
+        it("shows leader, role and combat, each with its own switch", function()
+            local player = stub.units.player
+            player.leader, player.role, player.combat = true, "HEALER", true
+            stub.fire("GROUP_ROSTER_UPDATE")
+            local frame = frames.player
+            assert.is_true(frame.leader.on)
+            assert.equal("L", frame.leader:GetText())
+            assert.is_true(frame.role.on)
+            assert.equal("H", frame.role:GetText())
+            assert.is_true(frame.combat.on)
+            ns.Settings.Set("unitframes", "showRole", false)
+            assert.is_false(frame.role.on)
+            assert.is_true(frame.leader.on)
+            player.leader, player.assistant = false, true
+            stub.fire("PARTY_LEADER_CHANGED")
+            assert.equal("A", frame.leader:GetText())
+        end)
+
+        it("shows resting, but not while in combat", function()
+            stub.resting = true
+            stub.fire("PLAYER_UPDATE_RESTING")
+            assert.is_true(frames.player.rest.on)
+            stub.units.player.combat = true
+            stub.fire("PLAYER_REGEN_DISABLED")
+            assert.is_false(frames.player.rest.on)
+            assert.is_true(frames.player.combat.on)
+        end)
+
+        it("tags an elite target and draws its raid marker", function()
+            target({
+                name = "Gorefang", level = 20, health = 900, healthMax = 900,
+                classification = "elite", marker = 8,
+            })
+            local frame = frames.target
+            assert.is_true(frame.tag.on)
+            assert.equal("Elite", frame.tag:GetText())
+            assert.is_true(frame.marker.on)
+            assert.equal(8, frame.marker.markerIndex)
+            ns.Settings.Set("unitframes", "showTag", false)
+            ns.Settings.Set("unitframes", "showMarker", false)
+            assert.is_false(frame.tag.on)
+            assert.is_false(frame.marker.on)
+        end)
+
+        it("treats hidden status values as not shown, without errors", function()
+            hideSecrets()
+            local player = stub.units.player
+            player.leader, player.role, player.combat, player.classification = SECRET, SECRET, SECRET, SECRET
+            stub.fire("GROUP_ROSTER_UPDATE")
+            local frame = frames.player
+            assert.is_false(frame.leader.on)
+            assert.is_false(frame.role.on)
+            assert.is_false(frame.combat.on)
+            assert.is_false(frame.tag.on)
+            assert.equal(0, #ns.Safety.GetLog())
+        end)
+
+        it("copes with a client that lacks the group functions", function()
+            _G.UnitIsGroupLeader, _G.UnitGroupRolesAssigned, _G.SetRaidTargetIconTexture = nil, nil, nil
+            stub.units.player.marker = 3
+            stub.fire("GROUP_ROSTER_UPDATE")
+            assert.is_false(frames.player.leader.on)
+            assert.is_false(frames.player.marker.on)
+            assert.equal(0, #ns.Safety.GetLog())
         end)
     end)
 

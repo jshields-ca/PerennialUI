@@ -247,6 +247,19 @@ function Stub.reset()
     _G.UnitIsPlayer = unitField("isPlayer", false)
     _G.UnitIsDeadOrGhost = unitField("dead", false)
     _G.UnitIsTapDenied = unitField("tapped", false)
+    _G.UnitIsGroupLeader = unitField("leader", false)
+    _G.UnitIsGroupAssistant = unitField("assistant", false)
+    _G.UnitGroupRolesAssigned = unitField("role", "NONE")
+    _G.UnitAffectingCombat = unitField("combat", false)
+    _G.UnitClassification = unitField("classification", "normal")
+    _G.GetRaidTargetIndex = unitField("marker", nil)
+    Stub.resting = false
+    _G.IsResting = function()
+        return Stub.resting
+    end
+    _G.SetRaidTargetIconTexture = function(texture, index)
+        texture.markerIndex = index
+    end
     _G.UnitReaction = unitField("reaction", nil)
     _G.UnitIsConnected = function(unit)
         local data = Stub.units[unit]

@@ -126,6 +126,35 @@ function Compat.ClassColor(classFile)
     return color.r, color.g, color.b
 end
 
+--- Call a client function by name. Returns its first two results, or nil
+--- when this client does not have the function or it raised an error.
+function Compat.Read(name, ...)
+    local fn = _G[name]
+    if type(fn) ~= "function" then
+        return nil
+    end
+    local ok, first, second = pcall(fn, ...)
+    if ok then
+        return first, second
+    end
+    return nil
+end
+
+local function setRaidMarker(texture, index)
+    texture:SetTexture("Interface\\TargetingFrame\\UI-RaidTargetingIcons")
+    _G.SetRaidTargetIconTexture(texture, index)
+end
+
+--- Draw raid marker number index (which may be hidden) into a texture.
+--- Returns true if the client drew it.
+--- TODO(verify): the texture path and SetRaidTargetIconTexture on Forever.
+function Compat.SetRaidMarker(texture, index)
+    if type(_G.SetRaidTargetIconTexture) ~= "function" then
+        return false
+    end
+    return (pcall(setRaidMarker, texture, index))
+end
+
 --- Draw a unit's flat portrait into a texture. Returns true if it was drawn.
 --- TODO(verify): SetPortraitTexture on the Forever client.
 function Compat.SetPortrait(texture, unit)
@@ -135,21 +164,46 @@ function Compat.SetPortrait(texture, unit)
     return (pcall(SetPortraitTexture, texture, unit))
 end
 
+-- Frame a model on the head and shoulders.
+-- TODO(verify): in game the first try showed the torso; these calls and the
+-- reframing after the model loads are the fix, not yet seen working.
+local function framePortrait(model)
+    if model.SetPortraitZoom then
+        model:SetPortraitZoom(1)
+    end
+    if model.SetCamDistanceScale then
+        model:SetCamDistanceScale(1)
+    end
+    if model.SetPosition then
+        model:SetPosition(0, 0, 0)
+    end
+end
+
+local function setModelUnit(model, unit)
+    model.portraitUnit = unit
+    model:SetUnit(unit)
+    framePortrait(model)
+end
+
 --- A frame that can draw a unit's 3D model, or nil if the client has none.
 --- TODO(verify): the PlayerModel frame type and its methods on Forever.
 function Compat.CreateModel(parent)
     local ok, model = pcall(CreateFrame, "PlayerModel", nil, parent)
-    if ok and type(model) == "table" then
-        return model
+    if not ok or type(model) ~= "table" then
+        return nil
     end
-    return nil
-end
-
-local function setModelUnit(model, unit)
-    model:SetUnit(unit)
-    if model.SetPortraitZoom then
-        model:SetPortraitZoom(1) -- head and shoulders
-    end
+    model.portraitUnit = false
+    -- The camera can only be set once the model has loaded, and a model
+    -- shown again after being hidden needs its unit set again.
+    pcall(model.SetScript, model, "OnModelLoaded", function(self)
+        pcall(framePortrait, self)
+    end)
+    pcall(model.SetScript, model, "OnShow", function(self)
+        if self.portraitUnit then
+            pcall(setModelUnit, self, self.portraitUnit)
+        end
+    end)
+    return model
 end
 
 --- Show a unit in a model frame, framed as a portrait. Returns true if the
@@ -163,6 +217,9 @@ end
 
 --- Empty a model frame.
 function Compat.ClearModel(model)
+    if model then
+        model.portraitUnit = false
+    end
     if model and model.ClearModel then
         pcall(model.ClearModel, model)
     end
@@ -215,14 +272,20 @@ local PROBE_GLOBALS = {
     "RAID_CLASS_COLORS", "PlayerFrame", "TargetFrame", "C_AddOns.GetAddOnMetadata",
     "C_CurveUtil", "C_Secrets", "SecureUnitButton_OnLoad",
     "CurveConstants.ScaleTo100", "AbbreviateNumbers", "SetPortraitTexture",
+    "UnitIsGroupLeader", "UnitIsGroupAssistant", "UnitGroupRolesAssigned", "UnitAffectingCombat",
+    "IsResting", "UnitClassification", "GetRaidTargetIndex", "SetRaidTargetIconTexture",
+    "UnitThreatSituation", "UnitDetailedThreatSituation",
 }
 local PROBE_METHODS = {
     Texture = { "SetTextureSliceMargins", "ClearTextureSlice", "SetColorTexture" },
     StatusBar = { "SetStatusBarTexture", "SetStatusBarColor", "SetMinMaxValues", "SetValue" },
     Frame = { "SetAttribute", "RegisterUnitEvent", "SetClampedToScreen" },
-    PlayerModel = { "SetUnit", "SetPortraitZoom", "ClearModel" },
+    PlayerModel = { "SetUnit", "SetPortraitZoom", "SetCamDistanceScale", "SetPosition", "ClearModel" },
 }
-local PROBE_UNIT_VALUES = { "UnitHealth", "UnitHealthMax", "UnitPower", "UnitName", "UnitLevel" }
+local PROBE_UNIT_VALUES = {
+    "UnitHealth", "UnitHealthMax", "UnitPower", "UnitName", "UnitLevel",
+    "UnitAffectingCombat", "UnitClassification", "UnitGroupRolesAssigned", "GetRaidTargetIndex",
+}
 
 -- Ways the client might give a character's name. Forever characters have a
 -- first and a last name; /pui api shows what each of these returns.
@@ -336,6 +399,9 @@ function Compat.Probe()
         local percent = Compat.HealthPercent(unit)
         report.values["HealthPercent(" .. unit .. ")"] = Compat.IsHidden(percent) and "hidden" or type(percent)
     end
+    -- Threat is next on the list for the frames: is it readable?
+    local threat = Compat.Read("UnitThreatSituation", "player", "target")
+    report.values["UnitThreatSituation(player, target)"] = Compat.IsHidden(threat) and "hidden" or type(threat)
     -- Whether text can be built from a value Lua cannot read.
     report.values["format(UnitHealth)"] = pcall(string.format, "%d", UnitHealth("player")) and "ok" or "refused"
     for i = 1, #PROBE_NAME_READS do

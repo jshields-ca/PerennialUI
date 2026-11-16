@@ -1,6 +1,7 @@
 -- SPDX-License-Identifier: GPL-3.0-or-later
--- Unit frames: the player and the target. Each is a glass panel with a name,
--- a level, a health bar and a power bar, and stands in for the game's own
+-- Unit frames: the player and the target. Each is a glass panel with an
+-- optional portrait, a name row (name, status, level), a health bar, a
+-- power bar and a row of health numbers, and stands in for the game's own
 -- frame. They are secure buttons, so left click targets and right click
 -- opens the unit menu in combat too.
 --
@@ -14,9 +15,19 @@ local Compat = ns.Compat
 local Theme = ns.Theme
 local Widgets = ns.Widgets
 
-local HEIGHT = 48
-local CHIP_INSET = 6 -- space above and below the chip
-local LEVEL_CHIP = 26 -- chip width when it holds only the level
+local HEIGHT = 64
+local CHIP_INSET = 6 -- space above and below the portrait chip
+local CHIP = HEIGHT - CHIP_INSET * 2
+local ROW_INSET = 6 -- from the top edge to the name row, and the bottom edge to the numbers row
+local BAR_TOP = 24 -- from the top edge to the health bar
+
+-- Words for a creature's rank, and letters for a group role.
+local TAGS = { elite = "Elite", rare = "Rare", rareelite = "Rare elite", worldboss = "Boss" }
+local ROLES = {
+    TANK = { letter = "T", color = "roleTank" },
+    HEALER = { letter = "H", color = "roleHealer" },
+    DAMAGER = { letter = "D", color = "roleDamage" },
+}
 local UNITS = {
     player = { title = "Player", mover = "unitframes_player", x = -260, y = -220 },
     target = { title = "Target", mover = "unitframes_target", x = 260, y = -220 },
@@ -42,12 +53,17 @@ local UnitFrames = ns.Modules.Register({
         hideDefault = true,
         nameStyle = "full",
         showLevel = true,
+        showLeader = true,
+        showRole = true,
+        showCombat = true,
+        showTag = true,
+        showMarker = true,
         playerPortrait = "none",
         targetPortrait = "none",
         healthText = "current",
         classColor = true,
         scale = 1,
-        width = 220,
+        width = 260,
     },
     settings = {
         { type = "header", label = "Frames" },
@@ -57,7 +73,7 @@ local UnitFrames = ns.Modules.Register({
             key = "hideDefault", type = "toggle", label = "Hide the game's own frames",
             desc = "Only for the frames turned on above.",
         },
-        { type = "header", label = "Portrait and level" },
+        { type = "header", label = "Portrait" },
         {
             key = "playerPortrait", type = "select", label = "Player portrait",
             values = {
@@ -74,10 +90,22 @@ local UnitFrames = ns.Modules.Register({
                 { value = "3d", label = "3D" },
             },
         },
+        { type = "header", label = "Name row" },
+        { key = "showLevel", type = "toggle", label = "Level" },
         {
-            key = "showLevel", type = "toggle", label = "Show level",
-            desc = "In the corner of the portrait, or on its own.",
+            key = "showLeader", type = "toggle", label = "Group leader",
+            desc = "L for the leader, A for an assistant.",
         },
+        {
+            key = "showRole", type = "toggle", label = "Group role",
+            desc = "T for tank, H for healer, D for damage.",
+        },
+        {
+            key = "showCombat", type = "toggle", label = "Combat and resting",
+            desc = "A red dot in combat, zz while resting.",
+        },
+        { key = "showTag", type = "toggle", label = "Elite, rare and boss" },
+        { key = "showMarker", type = "toggle", label = "Raid marker" },
         { type = "header", label = "Look" },
         {
             key = "nameStyle", type = "select", label = "Name",
@@ -100,7 +128,7 @@ local UnitFrames = ns.Modules.Register({
             desc = "Colour a player's health bar by class.",
         },
         { key = "scale", type = "range", label = "Scale", min = 0.6, max = 1.6, step = 0.05 },
-        { key = "width", type = "range", label = "Width", min = 160, max = 320, step = 10, advanced = true },
+        { key = "width", type = "range", label = "Width", min = 200, max = 360, step = 10, advanced = true },
     },
     events = {
         PLAYER_ENTERING_WORLD = "UpdateAll",
@@ -116,6 +144,15 @@ local UnitFrames = ns.Modules.Register({
         UNIT_CONNECTION = "OnUnitEvent",
         UNIT_PORTRAIT_UPDATE = "OnPortraitEvent",
         UNIT_MODEL_CHANGED = "OnPortraitEvent",
+        UNIT_FLAGS = "OnUnitEvent",
+        UNIT_CLASSIFICATION_CHANGED = "OnUnitEvent",
+        GROUP_ROSTER_UPDATE = "OnStatusEvent",
+        PARTY_LEADER_CHANGED = "OnStatusEvent",
+        PLAYER_ROLES_ASSIGNED = "OnStatusEvent",
+        PLAYER_REGEN_DISABLED = "OnStatusEvent",
+        PLAYER_REGEN_ENABLED = "OnStatusEvent",
+        PLAYER_UPDATE_RESTING = "OnStatusEvent",
+        RAID_TARGET_UPDATE = "OnStatusEvent",
     },
 })
 
@@ -180,6 +217,10 @@ function UnitFrames.Read(unit)
     -- On Forever 1.60.1 the second value is the character's last name (seen
     -- in game for the player and other players). Creatures have none.
     local name, surname = UnitName(unit)
+    local resting
+    if unit == "player" then
+        resting = Compat.Read("IsResting")
+    end
     return {
         name = name,
         surname = surname,
@@ -196,13 +237,21 @@ function UnitFrames.Read(unit)
         dead = UnitIsDeadOrGhost(unit),
         connected = UnitIsConnected(unit),
         tapped = UnitIsTapDenied(unit),
+        -- TODO(verify): these seven on the Forever client. Compat.Read gives
+        -- nil for a function the client does not have.
+        leader = Compat.Read("UnitIsGroupLeader", unit),
+        assistant = Compat.Read("UnitIsGroupAssistant", unit),
+        role = Compat.Read("UnitGroupRolesAssigned", unit),
+        combat = Compat.Read("UnitAffectingCombat", unit),
+        resting = resting,
+        classification = Compat.Read("UnitClassification", unit),
+        marker = Compat.Read("GetRaidTargetIndex", unit),
     }
 end
 
 function UnitFrames:Build(unit)
     local info = UNITS[unit]
     local pad = Theme.Get("space.md")
-    local left = pad + Theme.Get("border.rail")
 
     -- Template and click attributes checked in game on 1.60.1, in and out of combat.
     local frame = CreateFrame("Button", "PerennialUI" .. info.title .. "Frame", UIParent, "SecureUnitButtonTemplate")
@@ -217,65 +266,96 @@ function UnitFrames:Build(unit)
     -- secure button itself.
     local skin = Widgets.Panel(frame, nil, { rail = true })
     skin:SetAllPoints(frame)
+    frame.skin = skin
 
-    -- The chip: a box at the left edge that holds the portrait, the level,
-    -- or both (the level then sits in the corner on a dark plate).
+    -- The chip: a square at the left edge for the portrait. Nothing is drawn
+    -- over it. With portraits off it is hidden and the rows use its space.
     local chip = CreateFrame("Frame", nil, skin)
-    chip:SetPoint("TOPLEFT", skin, "TOPLEFT", left, -CHIP_INSET)
-    chip:SetHeight(HEIGHT - CHIP_INSET * 2)
+    chip:SetPoint("TOPLEFT", skin, "TOPLEFT", pad + Theme.Get("border.rail"), -CHIP_INSET)
+    chip:SetSize(CHIP, CHIP)
     chip.fill = chip:CreateTexture(nil, "BACKGROUND")
     chip.fill:SetAllPoints(chip)
     chip.fill:SetColorTexture(Theme.Color("track"))
     chip.picture = chip:CreateTexture(nil, "ARTWORK")
     chip.picture:SetAllPoints(chip)
-    -- A separate layer, so the level stays above a 3D model.
-    chip.overlay = CreateFrame("Frame", nil, chip)
-    chip.overlay:SetAllPoints(chip)
-    chip.overlay:SetFrameLevel((chip:GetFrameLevel() or 0) + 5)
-    chip.plate = chip.overlay:CreateTexture(nil, "ARTWORK")
-    chip.plate:SetColorTexture(Theme.Color("plate"))
     chip.model = false -- made the first time a 3D portrait is asked for
     frame.chip = chip
 
-    frame.level = Widgets.Text(chip.overlay, "", "sm", "text", "number")
-    chip.plate:SetPoint("TOPLEFT", frame.level, "TOPLEFT", -2, 1)
-    chip.plate:SetPoint("BOTTOMRIGHT", frame.level, "BOTTOMRIGHT", 2, -1)
-
-    -- Top row: name on the left, health numbers on the right. The numbers
-    -- are kept off the bar, which can be any class colour, so they always
-    -- sit on the panel and stay readable.
-    frame.healthText = Widgets.Text(skin, "", "sm", "text", "number")
-    frame.healthText:SetPoint("TOPRIGHT", skin, "TOPRIGHT", -pad, -7)
-    frame.healthText:SetJustifyH("RIGHT")
-
-    -- The percentage, when both it and the current value are shown.
-    frame.healthSide = Widgets.Text(skin, "", "sm", "textMuted", "number")
-    frame.healthSide:SetPoint("RIGHT", frame.healthText, "LEFT", -Theme.Get("space.sm"), 0)
-    frame.healthSide:SetJustifyH("RIGHT")
-
+    -- Name row: the name on the left; on the right the level and the status
+    -- items, placed right to left by arrangeStatus so hidden ones leave no gap.
     frame.name = Widgets.Text(skin, "", "md", "text")
     frame.name:SetWordWrap(false)
 
-    frame.health = Widgets.Bar(skin, "health")
-    frame.health:SetHeight(10)
+    frame.level = Widgets.Text(skin, "", "sm", "textMuted", "number")
+    frame.tag = Widgets.Text(skin, "", "sm", "textMuted")
+    frame.role = Widgets.Text(skin, "", "sm", "text", "number")
+    frame.leader = Widgets.Text(skin, "", "sm", "accent", "number")
+    frame.rest = Widgets.Text(skin, "zz", "sm", "textMuted", "number")
+    frame.combat = skin:CreateTexture(nil, "OVERLAY")
+    frame.combat:SetSize(6, 6)
+    frame.combat:SetColorTexture(Theme.Color("hostile"))
+    frame.marker = skin:CreateTexture(nil, "OVERLAY")
+    frame.marker:SetSize(14, 14)
+    frame.status = { frame.level, frame.tag, frame.role, frame.leader, frame.rest, frame.combat, frame.marker }
+    for i = 1, #frame.status do
+        frame.status[i].on = false
+    end
 
-    frame.skin = skin
+    frame.health = Widgets.Bar(skin, "health")
+    frame.health:SetHeight(14)
+
     frame.power = Widgets.Bar(skin, "power")
     frame.power:SetPoint("TOPLEFT", frame.health, "BOTTOMLEFT", 0, -Theme.Get("space.xs"))
     frame.power:SetPoint("TOPRIGHT", frame.health, "BOTTOMRIGHT", 0, -Theme.Get("space.xs"))
     frame.power:SetHeight(4)
 
+    -- Bottom row: the health numbers, off the bar (which can be any class
+    -- colour) so they always sit on the panel and stay readable.
+    frame.healthText = Widgets.Text(skin, "", "sm", "text", "number")
+    frame.healthText:SetPoint("BOTTOMRIGHT", skin, "BOTTOMRIGHT", -pad, ROW_INSET)
+    frame.healthText:SetJustifyH("RIGHT")
+
+    -- The percentage, when both it and the current value are shown.
+    frame.healthSide = Widgets.Text(skin, "", "sm", "textMuted", "number")
+
     return frame
 end
 
---- Place the chip, name and health bar for the current settings: the chip
---- is wide for a portrait, narrow for a level alone, and gone when neither
---- is shown. Sets frame.chip.mode to "none", "2d" or "3d".
+-- Place the name-row items that are on, right to left, then give the name
+-- the room that is left. Each item carries item.on (true or false).
+local function arrangeStatus(frame)
+    local skin = frame.skin
+    local gap = Theme.Get("space.sm")
+    local anchor
+    for i = 1, #frame.status do
+        local item = frame.status[i]
+        item:ClearAllPoints()
+        if item.on then
+            if anchor then
+                item:SetPoint("RIGHT", anchor, "LEFT", -gap, 0)
+            else
+                item:SetPoint("TOPRIGHT", skin, "TOPRIGHT", -Theme.Get("space.md"), -ROW_INSET - 1)
+            end
+            anchor = item
+        end
+        item:SetShown(item.on)
+    end
+    frame.name:ClearAllPoints()
+    frame.name:SetPoint("TOPLEFT", skin, "TOPLEFT", frame.contentX, -ROW_INSET)
+    if anchor then
+        frame.name:SetPoint("RIGHT", anchor, "LEFT", -gap, 0)
+    else
+        frame.name:SetPoint("RIGHT", skin, "RIGHT", -Theme.Get("space.md"), 0)
+    end
+end
+
+--- Place the chip and the rows for the current settings: with a portrait
+--- the rows start to the right of the chip, without one they use the full
+--- width. Sets frame.chip.mode to "none", "2d" or "3d".
 function UnitFrames:Arrange(unit)
     local frame, db = self.frames[unit], self.db
     local chip, skin = frame.chip, frame.skin
-    local pad, gap = Theme.Get("space.md"), Theme.Get("space.sm")
-    local left = pad + Theme.Get("border.rail")
+    local pad = Theme.Get("space.md")
 
     local mode = db[unit .. "Portrait"]
     if mode == "3d" and not chip.model then
@@ -289,30 +369,21 @@ function UnitFrames:Arrange(unit)
     end
     chip.mode = mode
 
-    local portrait, showLevel = mode ~= "none", db.showLevel and true or false
-    local width = portrait and (HEIGHT - CHIP_INSET * 2) or LEVEL_CHIP
-    chip:SetWidth(width)
-    chip:SetShown(portrait or showLevel)
+    local portrait = mode ~= "none"
+    chip:SetShown(portrait)
     chip.picture:SetShown(mode == "2d")
     if chip.model then
         chip.model:SetShown(mode == "3d")
     end
-    chip.plate:SetShown(portrait and showLevel)
-    frame.level:SetShown(showLevel)
-    frame.level:ClearAllPoints()
-    if portrait then
-        frame.level:SetPoint("BOTTOMRIGHT", chip, "BOTTOMRIGHT", -2, 2)
-    else
-        frame.level:SetPoint("CENTER", chip, "CENTER", 0, 0)
-    end
 
-    local x = left + ((portrait or showLevel) and (width + gap) or 0)
-    frame.name:ClearAllPoints()
-    frame.name:SetPoint("TOPLEFT", skin, "TOPLEFT", x, -6)
-    frame.name:SetPoint("RIGHT", frame.healthSide, "LEFT", -gap, 0)
+    local x = pad + Theme.Get("border.rail") + (portrait and (CHIP + Theme.Get("space.sm")) or 0)
+    frame.contentX = x
     frame.health:ClearAllPoints()
-    frame.health:SetPoint("TOPLEFT", skin, "TOPLEFT", x, -25)
-    frame.health:SetPoint("TOPRIGHT", skin, "TOPRIGHT", -pad, -25)
+    frame.health:SetPoint("TOPLEFT", skin, "TOPLEFT", x, -BAR_TOP)
+    frame.health:SetPoint("TOPRIGHT", skin, "TOPRIGHT", -pad, -BAR_TOP)
+    frame.healthSide:ClearAllPoints()
+    frame.healthSide:SetPoint("BOTTOMLEFT", skin, "BOTTOMLEFT", x, ROW_INSET)
+    arrangeStatus(frame)
 end
 
 --- Draw the unit in the chip. Kept apart from Render: a portrait changes
@@ -351,14 +422,48 @@ local function setName(label, state, style)
     Compat.SetText(label, first, "")
 end
 
+-- Fill in the level and the status items on the name row. Any of these
+-- values may be hidden; a hidden one is treated as "not shown".
+local function renderStatus(frame, state, db)
+    local level = Compat.Number(state.level)
+    local levelText = level and (level > 0 and tostring(level) or "??") or ""
+    frame.level:SetText(levelText)
+    frame.level.on = db.showLevel and levelText ~= ""
+
+    local tag = not Compat.IsHidden(state.classification) and TAGS[state.classification] or nil
+    frame.tag:SetText(tag or "")
+    frame.tag.on = db.showTag and tag ~= nil
+
+    local role = not Compat.IsHidden(state.role) and ROLES[state.role] or nil
+    frame.role.on = db.showRole and role ~= nil
+    if role then
+        frame.role:SetText(role.letter)
+        frame.role:SetTextColor(Theme.Color(role.color))
+    end
+
+    local leader = Compat.Flag(state.leader, false)
+    local assistant = Compat.Flag(state.assistant, false)
+    frame.leader:SetText(leader and "L" or (assistant and "A" or ""))
+    frame.leader.on = db.showLeader and (leader or assistant)
+
+    local combat = Compat.Flag(state.combat, false)
+    frame.combat.on = db.showCombat and combat
+    frame.rest.on = db.showCombat and not combat and Compat.Flag(state.resting, false)
+
+    -- type() is safe on a hidden value; comparing it to nil is not.
+    frame.marker.on = db.showMarker and type(state.marker) ~= "nil"
+        and Compat.SetRaidMarker(frame.marker, state.marker)
+
+    arrangeStatus(frame)
+end
+
 --- Draw a state table (from Read, or sample data) on a unit's frame.
 function UnitFrames:Render(unit, state)
     local frame = self.frames[unit]
     local db = self.db
 
     setName(frame.name, state, db.nameStyle)
-    local level = Compat.Number(state.level)
-    frame.level:SetText(level and (level > 0 and tostring(level) or "??") or "")
+    renderStatus(frame, state, db)
 
     local color = UnitFrames.HealthColor(unit, state, db.classColor)
     local r, g, b
@@ -420,6 +525,14 @@ function UnitFrames:UpdateAll()
     for i = 1, #ORDER do
         self:Update(ORDER[i])
         self:UpdatePortrait(ORDER[i])
+    end
+end
+
+-- Group, combat, resting and marker changes: redraw without touching the
+-- portraits, so a 3D model does not restart.
+function UnitFrames:OnStatusEvent()
+    for i = 1, #ORDER do
+        self:Update(ORDER[i])
     end
 end
 
