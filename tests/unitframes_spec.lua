@@ -242,6 +242,12 @@ describe("Unit frames", function()
         assert.equal(0, #ns.Safety.GetLog())
     end)
 
+    it("outlines the text on the health bar so it reads on any class colour", function()
+        assert.equal("OUTLINE", select(3, frames.player.healthText:GetFont()))
+        assert.equal("OUTLINE", select(3, frames.player.healthSide:GetFont()))
+        assert.equal("", select(3, frames.player.name:GetFont()))
+    end)
+
     it("follows health changes for its own units only", function()
         stub.units.player.health = 120
         stub.fire("UNIT_HEALTH", "party1")

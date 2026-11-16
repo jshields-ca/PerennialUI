@@ -150,8 +150,7 @@ function UnitFrames.Read(unit)
     local _, classFile = UnitClass(unit)
     local _, powerToken = UnitPowerType(unit)
     -- On Forever 1.60.1 the second value is the character's last name (seen
-    -- in game for the player). Creatures have none.
-    -- TODO(verify): that it is a last name, not a realm, for other players.
+    -- in game for the player and other players). Creatures have none.
     local name, surname = UnitName(unit)
     return {
         name = name,
@@ -205,14 +204,15 @@ function UnitFrames:Build(unit)
     frame.health:SetPoint("TOPRIGHT", skin, "TOPRIGHT", -pad, -23)
     frame.health:SetHeight(13)
 
-    frame.healthText = Widgets.Text(frame.health, "", "sm", "text", "number")
+    -- Outlined: the bar behind may be any class colour, or the dark track.
+    frame.healthText = Widgets.Text(frame.health, "", "sm", "textOnBar", "number", true)
     frame.healthText:SetPoint("RIGHT", frame.health, "RIGHT", -Theme.Get("space.sm"), 0)
     frame.healthText:SetJustifyH("RIGHT")
     frame.healthText:SetShadowOffset(1, -1)
     frame.healthText:SetShadowColor(0, 0, 0, 0.8)
 
     -- The percentage, when both it and the current value are shown.
-    frame.healthSide = Widgets.Text(frame.health, "", "sm", "text", "number")
+    frame.healthSide = Widgets.Text(frame.health, "", "sm", "textOnBar", "number", true)
     frame.healthSide:SetPoint("LEFT", frame.health, "LEFT", Theme.Get("space.sm"), 0)
     frame.healthSide:SetJustifyH("LEFT")
     frame.healthSide:SetShadowOffset(1, -1)

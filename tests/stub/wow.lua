@@ -72,6 +72,15 @@ function Region:GetAttribute(name)
     local attributes = rawget(self, "attributes")
     return attributes and attributes[name]
 end
+function Region:SetFont(file, height, flags)
+    self.font = { file, height, flags }
+end
+function Region:GetFont()
+    local font = rawget(self, "font")
+    if font then
+        return font[1], font[2], font[3]
+    end
+end
 function Region:SetStatusBarColor(r, g, b, a)
     self.barColor = { r, g, b, a }
 end
