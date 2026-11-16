@@ -42,7 +42,7 @@ Status: in progress.
 | First-login setup wizard: season, frame and nameplate style, placement | To do | Last, once there is something to place |
 | Profile auto-switch by spec | To do | Check what "spec" means on Forever first |
 | Share-string compression | To do | Vendor LibDeflate (zlib licence) if strings get long |
-| Proof module: player and target frames from theme tokens | Done, run in game | `Modules/UnitFrames`. 2026-11-15: clicks, the unit menu, bars and numbers in combat, and the game's frames coming back when it is turned off. Percent health text confirmed 2026-11-16. Last names confirmed 2026-11-16. Health numbers above the bar confirmed 2026-11-16. 2D and 3D portraits draw (2026-11-16). The larger layout, the name-row status items and the 3D framing fix are **not yet run in game** |
+| Proof module: player and target frames from theme tokens | Done, run in game | `Modules/UnitFrames`. 2026-11-15: clicks, the unit menu, bars and numbers in combat, and the game's frames coming back when it is turned off. Percent health text confirmed 2026-11-16. Last names confirmed 2026-11-16. Health numbers above the bar confirmed 2026-11-16. 2D and 3D portraits draw (2026-11-16). The larger layout and 3D framing confirmed 2026-11-16. Name-row status items are **not yet seen in game** |
 
 ## Phase 1: Daily driver
 
@@ -67,7 +67,7 @@ Each frame has named places that elements plug into, each element with its own o
 | Place | Player | Target | State |
 | --- | --- | --- | --- |
 | Portrait chip | 2D or 3D portrait | Same | Built |
-| Name row | Level, leader or assistant, role, in combat, resting | Level, elite/rare/boss tag, raid marker | Built, **not yet run in game**. Letters and a dot for now; our own icons later |
+| Name row | Level, leader or assistant, role, in combat, resting | Level, elite/rare/boss tag, raid marker | Layout confirmed in game 2026-11-16. Leader and role use the game's own icons (names **not yet verified**), with letters as the fallback. Status items not yet seen in a group |
 | Frame edge | Glow when you have aggro | Coloured by your threat on it | To do. `/pui api` reports whether threat is readable |
 | Row above or below | Buffs and debuffs | Buffs and debuffs, yours highlighted | To do |
 | Attached under the frame | Cast bar, class resources | Cast bar, target-of-target | To do |

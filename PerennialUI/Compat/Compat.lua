@@ -140,6 +140,50 @@ function Compat.Read(name, ...)
     return nil
 end
 
+-- The game's own icons, by what they mean. Each list is tried in order and
+-- the first name this client has is used.
+-- TODO(verify): these names are from the modern client, not checked on
+-- Forever. /pui api prints which one was found for each.
+local ICONS = {
+    leader = { "UI-HUD-UnitFrame-Player-Group-LeaderIcon", "groupfinder-icon-leader" },
+    assistant = { "UI-HUD-UnitFrame-Player-Group-AssistantIcon" },
+    TANK = { "UI-LFG-RoleIcon-Tank", "roleicon-tiny-tank", "groupfinder-icon-role-large-tank" },
+    HEALER = { "UI-LFG-RoleIcon-Healer", "roleicon-tiny-healer", "groupfinder-icon-role-large-heal" },
+    DAMAGER = { "UI-LFG-RoleIcon-DPS", "roleicon-tiny-dps", "groupfinder-icon-role-large-dps" },
+}
+local ICON_KINDS = { "leader", "assistant", "TANK", "HEALER", "DAMAGER" }
+local iconFound = {}
+
+--- The name of the game's icon for leader, assistant, TANK, HEALER or
+--- DAMAGER, or nil when this client has none of the names we know.
+function Compat.IconName(kind)
+    if iconFound[kind] == nil then
+        iconFound[kind] = false
+        local info = _G.C_Texture and _G.C_Texture.GetAtlasInfo
+        local names = ICONS[kind]
+        if type(info) == "function" and names then
+            for i = 1, #names do
+                local ok, found = pcall(info, names[i])
+                if ok and found then
+                    iconFound[kind] = names[i]
+                    break
+                end
+            end
+        end
+    end
+    return iconFound[kind] or nil
+end
+
+--- Draw one of the game's icons into a texture. Returns false when the
+--- client has no such icon, so the caller can show something else.
+function Compat.SetIcon(texture, kind)
+    local name = Compat.IconName(kind)
+    if not name or not texture.SetAtlas then
+        return false
+    end
+    return (pcall(texture.SetAtlas, texture, name))
+end
+
 local function setRaidMarker(texture, index)
     texture:SetTexture("Interface\\TargetingFrame\\UI-RaidTargetingIcons")
     _G.SetRaidTargetIconTexture(texture, index)
@@ -165,8 +209,8 @@ function Compat.SetPortrait(texture, unit)
 end
 
 -- Frame a model on the head and shoulders.
--- TODO(verify): in game the first try showed the torso; these calls and the
--- reframing after the model loads are the fix, not yet seen working.
+-- Seen working in game on 1.60.1, together with the reframing once the
+-- model has loaded.
 local function framePortrait(model)
     if model.SetPortraitZoom then
         model:SetPortraitZoom(1)
@@ -410,6 +454,9 @@ function Compat.Probe()
             report.notes[#report.notes + 1] = PROBE_NAME_READS[i] .. "(player): "
                 .. describeAll(pcall(read, "player", true))
         end
+    end
+    for i = 1, #ICON_KINDS do
+        report.notes[#report.notes + 1] = "icon " .. ICON_KINDS[i] .. ": " .. (Compat.IconName(ICON_KINDS[i]) or "none")
     end
     local found = nameFunctions()
     for i = 1, math.min(#found, 25) do

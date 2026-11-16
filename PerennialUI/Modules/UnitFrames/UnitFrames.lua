@@ -94,11 +94,11 @@ local UnitFrames = ns.Modules.Register({
         { key = "showLevel", type = "toggle", label = "Level" },
         {
             key = "showLeader", type = "toggle", label = "Group leader",
-            desc = "L for the leader, A for an assistant.",
+            desc = "The leader and assistant icons.",
         },
         {
             key = "showRole", type = "toggle", label = "Group role",
-            desc = "T for tank, H for healer, D for damage.",
+            desc = "The tank, healer and damage icons.",
         },
         {
             key = "showCombat", type = "toggle", label = "Combat and resting",
@@ -237,8 +237,8 @@ function UnitFrames.Read(unit)
         dead = UnitIsDeadOrGhost(unit),
         connected = UnitIsConnected(unit),
         tapped = UnitIsTapDenied(unit),
-        -- TODO(verify): these seven on the Forever client. Compat.Read gives
-        -- nil for a function the client does not have.
+        -- All seven exist on 1.60.1 and are readable out of combat (client
+        -- check, 2026-11-16). Compat.Read gives nil on a client without one.
         leader = Compat.Read("UnitIsGroupLeader", unit),
         assistant = Compat.Read("UnitIsGroupAssistant", unit),
         role = Compat.Read("UnitGroupRolesAssigned", unit),
@@ -288,15 +288,24 @@ function UnitFrames:Build(unit)
 
     frame.level = Widgets.Text(skin, "", "sm", "textMuted", "number")
     frame.tag = Widgets.Text(skin, "", "sm", "textMuted")
+    -- Leader and role use the game's own icons; the letters are for a
+    -- client that has none.
     frame.role = Widgets.Text(skin, "", "sm", "text", "number")
+    frame.roleIcon = skin:CreateTexture(nil, "OVERLAY")
+    frame.roleIcon:SetSize(14, 14)
     frame.leader = Widgets.Text(skin, "", "sm", "accent", "number")
+    frame.leaderIcon = skin:CreateTexture(nil, "OVERLAY")
+    frame.leaderIcon:SetSize(14, 14)
     frame.rest = Widgets.Text(skin, "zz", "sm", "textMuted", "number")
     frame.combat = skin:CreateTexture(nil, "OVERLAY")
     frame.combat:SetSize(6, 6)
     frame.combat:SetColorTexture(Theme.Color("hostile"))
     frame.marker = skin:CreateTexture(nil, "OVERLAY")
     frame.marker:SetSize(14, 14)
-    frame.status = { frame.level, frame.tag, frame.role, frame.leader, frame.rest, frame.combat, frame.marker }
+    frame.status = {
+        frame.level, frame.tag, frame.roleIcon, frame.role, frame.leaderIcon, frame.leader,
+        frame.rest, frame.combat, frame.marker,
+    }
     for i = 1, #frame.status do
         frame.status[i].on = false
     end
@@ -435,7 +444,9 @@ local function renderStatus(frame, state, db)
     frame.tag.on = db.showTag and tag ~= nil
 
     local role = not Compat.IsHidden(state.role) and ROLES[state.role] or nil
-    frame.role.on = db.showRole and role ~= nil
+    local showRole = db.showRole and role ~= nil
+    frame.roleIcon.on = showRole and Compat.SetIcon(frame.roleIcon, state.role)
+    frame.role.on = showRole and not frame.roleIcon.on
     if role then
         frame.role:SetText(role.letter)
         frame.role:SetTextColor(Theme.Color(role.color))
@@ -443,8 +454,10 @@ local function renderStatus(frame, state, db)
 
     local leader = Compat.Flag(state.leader, false)
     local assistant = Compat.Flag(state.assistant, false)
+    local showLeader = db.showLeader and (leader or assistant)
+    frame.leaderIcon.on = showLeader and Compat.SetIcon(frame.leaderIcon, leader and "leader" or "assistant")
+    frame.leader.on = showLeader and not frame.leaderIcon.on
     frame.leader:SetText(leader and "L" or (assistant and "A" or ""))
-    frame.leader.on = db.showLeader and (leader or assistant)
 
     local combat = Compat.Flag(state.combat, false)
     frame.combat.on = db.showCombat and combat

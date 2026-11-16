@@ -331,6 +331,31 @@ describe("Unit frames", function()
             assert.equal("A", frame.leader:GetText())
         end)
 
+        it("uses the game's own icons where the client has them", function()
+            _G.C_Texture = {
+                GetAtlasInfo = function(name)
+                    return (name == "UI-LFG-RoleIcon-Healer" or name == "groupfinder-icon-leader") and {} or nil
+                end,
+            }
+            local player = stub.units.player
+            player.leader, player.role = true, "HEALER"
+            stub.fire("GROUP_ROSTER_UPDATE")
+            local frame = frames.player
+            assert.is_true(frame.roleIcon.on)
+            assert.is_false(frame.role.on)
+            assert.equal("UI-LFG-RoleIcon-Healer", frame.roleIcon.atlas)
+            assert.is_true(frame.leaderIcon.on)
+            assert.equal("groupfinder-icon-leader", frame.leaderIcon.atlas)
+            -- No tank icon on this fake client: the letter stands in.
+            player.role = "TANK"
+            stub.fire("PLAYER_ROLES_ASSIGNED")
+            assert.is_false(frame.roleIcon.on)
+            assert.is_true(frame.role.on)
+            local notes = table.concat(ns.Compat.Probe().notes, "\n")
+            assert.is_truthy(notes:find("icon HEALER: UI-LFG-RoleIcon-Healer", 1, true))
+            assert.is_truthy(notes:find("icon TANK: none", 1, true))
+        end)
+
         it("shows resting, but not while in combat", function()
             stub.resting = true
             stub.fire("PLAYER_UPDATE_RESTING")

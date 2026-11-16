@@ -72,6 +72,9 @@ function Region:GetAttribute(name)
     local attributes = rawget(self, "attributes")
     return attributes and attributes[name]
 end
+function Region:SetAtlas(name)
+    self.atlas = name
+end
 function Region:SetUnit(unit)
     self.modelUnit = unit
 end
@@ -201,6 +204,7 @@ function Stub.reset()
     _G.debugstack = nil
     _G.issecretvalue = nil
     _G.UnitHealthPercent = nil
+    _G.C_Texture = nil
     Stub.portraits = {}
     _G.SetPortraitTexture = function(texture, unit)
         Stub.portraits[texture] = unit
