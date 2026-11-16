@@ -124,7 +124,6 @@ describe("Compat for hidden values", function()
     end)
 
     it("formats into a label, and leaves it alone when formatting fails", function()
-        local label = CreateFrame("Frame"):CreateFontString()
         label:SetText("before")
         assert.is_true(Compat.SetFormatted(label, "%d%%", 40))
         assert.equal("40%", label:GetText())
