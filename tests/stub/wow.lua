@@ -215,7 +215,7 @@ function Stub.reset()
     end
     _G.UnitName = function(unit)
         local data = Stub.units[unit or "player"]
-        return data and data.name or nil
+        return data and data.name or nil, data and data.surname or nil
     end
     _G.UnitExists = function(unit)
         return Stub.units[unit] ~= nil

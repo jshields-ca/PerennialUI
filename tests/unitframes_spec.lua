@@ -2,7 +2,12 @@
 local Loader = require("tests.helpers.loader")
 
 -- A value the fake client treats as hidden from addons.
-local SECRET = { secret = true }
+-- It cannot be turned into text, whichever Lua version runs the tests.
+local SECRET = setmetatable({ secret = true }, {
+    __tostring = function()
+        error("hidden value")
+    end,
+})
 
 local function hideSecrets()
     _G.issecretvalue = function(value)
@@ -219,6 +224,22 @@ describe("Unit frames", function()
         assert.same({ 0.78, 0.61, 0.43 }, frame.health.color)
         assert.equal(50, frame.power.value)
         assert.same({ ns.Theme.Color("rage") }, { frame.power.color[1], frame.power.color[2], frame.power.color[3], 1 })
+    end)
+
+    it("shows first and last name by default, or the first alone", function()
+        stub.units.player.surname = "Oakfield"
+        stub.fire("UNIT_NAME_UPDATE", "player")
+        assert.equal("Tester Oakfield", frames.player.name:GetText())
+        ns.Settings.Set("unitframes", "nameStyle", "first")
+        assert.equal("Tester", frames.player.name:GetText())
+    end)
+
+    it("shows the first name when a hidden last name cannot be joined to it", function()
+        hideSecrets()
+        stub.units.player.surname = SECRET
+        stub.fire("UNIT_NAME_UPDATE", "player")
+        assert.equal("Tester", frames.player.name:GetText())
+        assert.equal(0, #ns.Safety.GetLog())
     end)
 
     it("follows health changes for its own units only", function()

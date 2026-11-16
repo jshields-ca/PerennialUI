@@ -38,6 +38,7 @@ local UnitFrames = ns.Modules.Register({
         player = true,
         target = true,
         hideDefault = true,
+        nameStyle = "full",
         healthText = "current",
         classColor = true,
         scale = 1,
@@ -52,6 +53,13 @@ local UnitFrames = ns.Modules.Register({
             desc = "Only for the frames turned on above.",
         },
         { type = "header", label = "Look" },
+        {
+            key = "nameStyle", type = "select", label = "Name",
+            values = {
+                { value = "full", label = "First and last" },
+                { value = "first", label = "First only" },
+            },
+        },
         {
             key = "healthText", type = "select", label = "Health text",
             values = {
@@ -141,8 +149,13 @@ end
 function UnitFrames.Read(unit)
     local _, classFile = UnitClass(unit)
     local _, powerToken = UnitPowerType(unit)
+    -- On Forever 1.60.1 the second value is the character's last name (seen
+    -- in game for the player). Creatures have none.
+    -- TODO(verify): that it is a last name, not a realm, for other players.
+    local name, surname = UnitName(unit)
     return {
-        name = UnitName(unit),
+        name = name,
+        surname = surname,
         level = UnitLevel(unit),
         health = UnitHealth(unit),
         healthMax = UnitHealthMax(unit),
@@ -213,12 +226,28 @@ function UnitFrames:Build(unit)
     return frame
 end
 
+-- First and last name where there is a last name, otherwise the first alone.
+local function setName(label, state, style)
+    local first, last = state.name, state.surname
+    if style == "full" then
+        if Compat.IsHidden(first) or Compat.IsHidden(last) then
+            if Compat.SetFormatted(label, "%s %s", first, last) then
+                return
+            end
+        elseif type(first) == "string" and type(last) == "string" and last ~= "" then
+            label:SetText(first .. " " .. last)
+            return
+        end
+    end
+    Compat.SetText(label, first, "")
+end
+
 --- Draw a state table (from Read, or sample data) on a unit's frame.
 function UnitFrames:Render(unit, state)
     local frame = self.frames[unit]
     local db = self.db
 
-    Compat.SetText(frame.name, state.name, "")
+    setName(frame.name, state, db.nameStyle)
     local level = Compat.Number(state.level)
     frame.level:SetText(level and (level > 0 and tostring(level) or "??") or "")
 
