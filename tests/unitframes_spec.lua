@@ -109,6 +109,30 @@ describe("Compat for hidden values", function()
         assert.is_falsy(missing:find("UnitHealthMax", 1, true))
     end)
 
+    it("asks the client for a health percentage only when it can scale it", function()
+        assert.is_nil(Compat.HealthPercent("player"))
+        _G.UnitHealthPercent = function(_, _, scale)
+            return scale == "to100" and 75 or 0.75
+        end
+        assert.is_nil(Compat.HealthPercent("player"))
+        _G.CurveConstants = { ScaleTo100 = "to100" }
+        assert.equal(75, Compat.HealthPercent("player"))
+        _G.UnitHealthPercent = function()
+            error("refused")
+        end
+        assert.is_nil(Compat.HealthPercent("player"))
+    end)
+
+    it("formats into a label, and leaves it alone when formatting fails", function()
+        local label = CreateFrame("Frame"):CreateFontString()
+        label:SetText("before")
+        assert.is_true(Compat.SetFormatted(label, "%d%%", 40))
+        assert.equal("40%", label:GetText())
+        assert.is_false(Compat.SetFormatted(label, "%d%%", SECRET))
+        assert.is_false(Compat.SetFormatted(label, "%d%%", nil))
+        assert.equal("40%", label:GetText())
+    end)
+
     it("saves the report from /pui api", function()
         ns.Slash.Run("api")
         assert.equal("table", type(_G.PerennialUIDB.global.probes.rest))
@@ -238,6 +262,28 @@ describe("Unit frames", function()
         assert.equal("", frame.level:GetText())
         assert.equal("enabled", ns.Modules.GetState("unitframes"))
         assert.equal(0, #ns.Safety.GetLog())
+    end)
+
+    it("shows a percentage from the client when health itself is hidden", function()
+        hideSecrets()
+        _G.CurveConstants = { ScaleTo100 = "to100" }
+        _G.UnitHealthPercent = function()
+            return 75
+        end
+        stub.units.player.health = SECRET
+        ns.Settings.Set("unitframes", "healthText", "percent")
+        assert.equal("75%", frames.player.healthText:GetText())
+        -- The fake hidden value cannot be formatted, so "both" falls back to it.
+        ns.Settings.Set("unitframes", "healthText", "both")
+        assert.equal(SECRET, frames.player.healthText.text)
+        assert.equal(0, #ns.Safety.GetLog())
+    end)
+
+    it("shows current health when the client has no percentage", function()
+        hideSecrets()
+        stub.units.player.health = SECRET
+        ns.Settings.Set("unitframes", "healthText", "percent")
+        assert.equal(SECRET, frames.player.healthText.text)
     end)
 
     it("applies settings", function()

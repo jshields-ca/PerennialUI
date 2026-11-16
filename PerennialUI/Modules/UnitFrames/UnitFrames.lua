@@ -144,6 +144,7 @@ function UnitFrames.Read(unit)
         level = UnitLevel(unit),
         health = UnitHealth(unit),
         healthMax = UnitHealthMax(unit),
+        healthPercent = Compat.HealthPercent(unit),
         power = UnitPower(unit),
         powerMax = UnitPowerMax(unit),
         powerToken = powerToken,
@@ -161,7 +162,7 @@ function UnitFrames:Build(unit)
     local pad = Theme.Get("space.md")
     local left = pad + Theme.Get("border.rail")
 
-    -- TODO(verify): template and attribute names against the Forever client.
+    -- Template and click attributes checked in game on 1.60.1, in and out of combat.
     local frame = CreateFrame("Button", "PerennialUI" .. info.title .. "Frame", UIParent, "SecureUnitButtonTemplate")
     frame:SetAttribute("unit", unit)
     frame:SetAttribute("*type1", "target")
@@ -233,8 +234,17 @@ function UnitFrames:Render(unit, state)
         if text then
             frame.healthText:SetText(text)
         else
-            -- Not readable: let the font string show the current value itself.
-            Compat.SetText(frame.healthText, state.health, "")
+            -- Not readable (the usual case on Forever): the client builds the
+            -- text. If it cannot, show the current value on its own.
+            local mode, shown = db.healthText, false
+            if mode == "percent" then
+                shown = Compat.SetFormatted(frame.healthText, "%.0f%%", state.healthPercent)
+            elseif mode == "both" then
+                shown = Compat.SetFormatted(frame.healthText, "%d  %.0f%%", state.health, state.healthPercent)
+            end
+            if not shown then
+                Compat.SetText(frame.healthText, state.health, "")
+            end
         end
     end
 

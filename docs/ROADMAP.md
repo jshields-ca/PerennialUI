@@ -26,11 +26,11 @@ Status: in progress.
 | Theme tokens and seasonal palettes | Done, tested | Dark season-tinted glass; Sora, DM Sans and DM Mono bundled |
 | Rounded panels, accent rail and bundled fonts drawn in the client | Done, run in game | Uses nine-slice textures; falls back to square corners and client fonts if the client refuses them |
 | Combat lockdown queue | Done, tested | |
-| Compat layer and hidden-value guard | Done, tested against a stub | **Needs verifying in the live client** |
+| Compat layer and hidden-value guard | Done, run in game | 2026-11-15: bars and text accept hidden values, in and out of combat |
 | Slash commands: config, help, move, test, safe, bug, undo, modules, enable, disable | Done, tested | |
 | First in-game load on client 1.60.1 | Done | 2026-11-14: settings window, layout mode, sandbox and the glass look |
-| Client check: `/pui api` reports which client functions exist and which values are hidden | Written, **not yet run in game** | Run it once out of combat and once in combat. Results are saved, and replace the `TODO(verify)` guesses in `Compat/` |
-| Widget kit: panel, button, checkbox, slider, picker, scroll area, text input, status bar, all themed | Done, run in game (status bar not yet) | The picker cycles through choices; a real dropdown list is still to do |
+| Client check: `/pui api` reports which client functions exist and which values are hidden | Done, run in game | 2026-11-15: all 36 checks found. Current health and power are hidden all the time; a target's maximum health is hidden in combat; names, levels and the player's maximum health are readable |
+| Widget kit: panel, button, checkbox, slider, picker, scroll area, text input, status bar, all themed | Done, run in game | The picker cycles through choices; a real dropdown list is still to do |
 | Settings window: resizable, searchable, simple/advanced, pinned pages | Done, run in game | Pages come from each module's `settings` declaration |
 | Settings undo and change history | Done, tested | Session only; `/pui undo` and the History page |
 | Profile management in the window: create, copy, delete, import, export | To do | The window can only switch profile today |
@@ -42,7 +42,7 @@ Status: in progress.
 | First-login setup wizard: season, frame and nameplate style, placement | To do | Last, once there is something to place |
 | Profile auto-switch by spec | To do | Check what "spec" means on Forever first |
 | Share-string compression | To do | Vendor LibDeflate (zlib licence) if strings get long |
-| Proof module: player and target frames from theme tokens | Written, **not yet run in game** | `Modules/UnitFrames`. Our own secure frames. Needs a check in combat: clicks, hidden values, and the game's frames coming back when it is turned off. Closes the phase |
+| Proof module: player and target frames from theme tokens | Done, run in game | `Modules/UnitFrames`. 2026-11-15: clicks, the unit menu, bars and numbers in combat, and the game's frames coming back when it is turned off. Percent health text is written but **not yet run in game** |
 
 ## Phase 1: Daily driver
 
@@ -136,9 +136,9 @@ Classic Era, Hardcore and Season of Discovery use a different API. The shims go 
 
 ## Open questions
 
-- **Unit frames:** the player and target frames are our own code. Before party and raid frames, decide whether to keep going that way or move to oUF, once the frames have been tried under hidden combat values.
+- **Unit frames:** the player and target frames are our own code. Before party and raid frames, decide whether to keep going that way or move to oUF, now that our own frames work under hidden values (2026-11-15).
 - **Unit frame events:** the frames listen to unit events for every unit and ignore the ones they do not show. Switch to per-unit registration if that shows up in raids.
-- **Hidden values:** confirm the client's predicate for hidden values and exactly which fields are hidden, from the live `/api` export. `Compat.IsHidden` currently assumes `issecretvalue`.
+- **Hidden values:** `issecretvalue` is confirmed. Still open: whether text can be built from a hidden number (percent health text, and short forms such as 12.3k), since current health is never readable. `/pui api` now reports this.
 - **`/pui`:** check that no popular addon already uses this slash command.
 - **Glass details:** a top-to-bottom gradient inside panels and a softer drop shadow are in the mock-ups but not yet drawn in game.
 - **Non-Latin fonts:** Russian, Korean and Chinese clients fall back to the game's fonts. Pick open fonts for those scripts later.

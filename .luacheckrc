@@ -38,6 +38,8 @@ read_globals = {
     "UnitExists",
     "UnitHealth",
     "UnitHealthMax",
+    "UnitHealthPercent",
+    "CurveConstants",
     "UnitIsConnected",
     "UnitIsDeadOrGhost",
     "UnitIsPlayer",

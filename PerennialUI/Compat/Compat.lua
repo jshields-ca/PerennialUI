@@ -17,8 +17,9 @@ Compat.interface = interface or 0
 Compat.isForever = Compat.interface >= 16000 and Compat.interface < 20000
 Compat.isClassicEra = Compat.interface >= 11300 and Compat.interface < 16000
 
---- True if the client is hiding this value from addons (combat restrictions).
---- TODO(verify): confirm the predicate's name against the Forever /api export.
+--- True if the client is hiding this value from addons. On Forever 1.60.1
+--- current health and power are hidden all the time, not only in combat; a
+--- target's maximum health is hidden in combat. (Seen in game, 2026-11-15.)
 function Compat.IsHidden(value)
     return issecretvalue ~= nil and issecretvalue(value) == true
 end
@@ -45,8 +46,8 @@ end
 ---   "known"    both were readable numbers
 ---   "hidden"   they were hidden, and the bar accepted them directly
 ---   "unknown"  the bar could not be set; it is shown full
---- TODO(verify): that Forever's status bars accept hidden values. If they do
---- not, bars show full in combat instead of erroring.
+--- Forever's status bars accept hidden values (seen in game). On a client
+--- that refuses them, the bar shows full instead of erroring.
 function Compat.SetBar(bar, value, max)
     local known, knownMax = Compat.Number(value), Compat.Number(max)
     if known and knownMax then
@@ -71,7 +72,7 @@ end
 --- Put a string or number into a font string. A hidden value is handed to
 --- the font string directly; if the client refuses, fallback is shown.
 --- Returns true if the value itself is on screen.
---- TODO(verify): that Forever's font strings accept hidden values.
+--- Forever's font strings accept hidden values (seen in game).
 function Compat.SetText(label, value, fallback)
     local kind = type(value)
     if Compat.IsHidden(value) then
@@ -84,6 +85,34 @@ function Compat.SetText(label, value, fallback)
     end
     label:SetText(fallback or "")
     return false
+end
+
+local function setFormatted(label, pattern, ...)
+    label:SetText(pattern:format(...))
+end
+
+--- Format values that may be hidden and put the result in a font string,
+--- without Lua ever looking at them. Returns true if the text was set; on
+--- false the font string is unchanged, so the caller shows something else.
+--- TODO(verify): that Forever's string.format accepts hidden values.
+function Compat.SetFormatted(label, pattern, ...)
+    return (pcall(setFormatted, label, pattern, ...))
+end
+
+--- A unit's health as 0 to 100, from the client. It may be hidden, so hand
+--- it to SetFormatted. Nil when the client cannot give it.
+--- TODO(verify): the arguments (unit, use predicted health, scale) and that
+--- CurveConstants.ScaleTo100 gives 0 to 100. Check that full health reads 100%.
+function Compat.HealthPercent(unit)
+    local scale = CurveConstants and CurveConstants.ScaleTo100
+    if type(UnitHealthPercent) ~= "function" or scale == nil then
+        return nil
+    end
+    local ok, percent = pcall(UnitHealthPercent, unit, true, scale)
+    if ok then
+        return percent
+    end
+    return nil
 end
 
 --- r, g, b for a class file name such as "WARRIOR", or nil.
@@ -144,6 +173,7 @@ local PROBE_GLOBALS = {
     "UnitIsDeadOrGhost", "UnitIsConnected", "UnitIsTapDenied",
     "RAID_CLASS_COLORS", "PlayerFrame", "TargetFrame", "C_AddOns.GetAddOnMetadata",
     "C_CurveUtil", "C_Secrets", "SecureUnitButton_OnLoad",
+    "CurveConstants.ScaleTo100", "AbbreviateNumbers",
 }
 local PROBE_METHODS = {
     Texture = { "SetTextureSliceMargins", "ClearTextureSlice", "SetColorTexture" },
@@ -198,7 +228,11 @@ function Compat.Probe()
                     not ok and "error" or (Compat.IsHidden(value) and "hidden" or type(value))
             end
         end
+        local percent = Compat.HealthPercent(unit)
+        report.values["HealthPercent(" .. unit .. ")"] = Compat.IsHidden(percent) and "hidden" or type(percent)
     end
+    -- Whether text can be built from a value Lua cannot read.
+    report.values["format(UnitHealth)"] = pcall(string.format, "%d", UnitHealth("player")) and "ok" or "refused"
     table.sort(report.missing)
     return report
 end

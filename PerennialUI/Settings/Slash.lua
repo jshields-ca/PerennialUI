@@ -154,13 +154,13 @@ Slash.Register("api", "check what this client supports (try it in and out of com
     for i = 1, #report.missing do
         print("  missing: " .. report.missing[i])
     end
-    local names = {}
-    for name in pairs(report.values) do
-        names[#names + 1] = name
+    local keys = {}
+    for key in pairs(report.values) do
+        keys[#keys + 1] = key
     end
-    table.sort(names)
-    for i = 1, #names do
-        print("  " .. names[i] .. ": " .. report.values[names[i]])
+    table.sort(keys)
+    for i = 1, #keys do
+        print("  " .. keys[i] .. ": " .. report.values[keys[i]])
     end
 end)
 

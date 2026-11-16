@@ -185,6 +185,8 @@ function Stub.reset()
     _G.C_AddOns = nil
     _G.debugstack = nil
     _G.issecretvalue = nil
+    _G.UnitHealthPercent = nil
+    _G.CurveConstants = nil
 
     _G.GetTime = function()
         return Stub.now
