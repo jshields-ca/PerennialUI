@@ -140,6 +140,16 @@ Slash.Register("bug", "print a bug report to copy into an issue", function()
     end
 end)
 
+Slash.Register("debug", "for development: record frames and errors on /reload", function()
+    local on = not ns.Debug.IsOn()
+    ns.Debug.SetOn(on)
+    if on then
+        ns.Print("Debug mode is on. /reload now: frames and errors are recorded, and a screenshot is taken.")
+    else
+        ns.Print("Debug mode is off.")
+    end
+end)
+
 Slash.Register("api", "check what this client supports (try it in and out of combat)", function()
     local report = ns.Compat.Probe()
     -- Saved so it can be read from the saved variables file after a /reload.

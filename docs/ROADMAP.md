@@ -29,6 +29,7 @@ Status: in progress.
 | Compat layer and hidden-value guard | Done, run in game | 2026-11-15: bars and text accept hidden values, in and out of combat |
 | Slash commands: config, help, move, test, safe, bug, undo, modules, enable, disable | Done, tested | |
 | First in-game load on client 1.60.1 | Done | 2026-11-14: settings window, layout mode, sandbox and the glass look |
+| Debug mode: `/pui debug` records frames and errors on `/reload` and takes a screenshot | Written, **not yet run in game** | The feedback loop for development: results are read from the saved variables file and the Screenshots folder |
 | Client check: `/pui api` reports which client functions exist and which values are hidden | Done, run in game | 2026-11-15: all 36 checks found. Current health and power are hidden all the time; a target's maximum health is hidden in combat; names, levels and the player's maximum health are readable |
 | Widget kit: panel, button, checkbox, slider, picker, scroll area, text input, status bar, all themed | Done, run in game | The picker cycles through choices; a real dropdown list is still to do |
 | Settings window: resizable, searchable, simple/advanced, pinned pages | Done, run in game | Pages come from each module's `settings` declaration |

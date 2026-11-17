@@ -280,6 +280,7 @@ function Layout.Register(owner, id, frame, opts)
     }
     movers[id] = mover
     order[#order + 1] = mover
+    ns.Debug.Watch(id, frame)
     Layout.Apply(id)
     if Layout.IsActive() then
         refreshOverlay()

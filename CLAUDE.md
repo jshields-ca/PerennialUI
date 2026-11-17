@@ -23,7 +23,7 @@ Perennial UI is a GPL-3.0-or-later interface replacement for World of Warcraft: 
 
 ```text
 PerennialUI/            the addon; PerennialUI.toc lists load order
-  Core/                 Init, Safety, Events, Serialize, DB, Theme, Combat, Modules, Boot
+  Core/                 Init, Safety, Events, Serialize, DB, Theme, Combat, Debug, Modules, Boot
   Compat/               client differences and hidden-value guards
   Settings/             Registry (option data, undo, search), Pages, Window, Slash
   UI/                   Widgets: themed building blocks
@@ -59,6 +59,16 @@ bash tools/check-files.sh     # SPDX headers and TOC listing
 ```
 
 CI runs all three plus a DCO check on every pull request. If Lua is not installed locally, say so rather than claiming the checks pass.
+
+## Feedback loop
+
+The game writes two things an assistant can read: the addon's saved variables (on `/reload` and logout) and screenshots.
+
+- `/pui debug` turns debug mode on. From then on each `/reload` saves a snapshot of every registered frame (position, size, shown, text) and the caught errors, and a screenshot is taken two seconds after loading.
+- Read results from `WTF/Account/<account>/SavedVariables/PerennialUI.lua` under `global.snapshots` (`load` and `exit`) and `global.probes` (from `/pui api`), and from `Screenshots/`. The game folder is the developer's own; ask for its path.
+- In that folder read **only** `PerennialUI.lua` and the screenshots. Other addons' saved variables fall under the clean-room rule.
+- **A person presses the keys.** Never send `/reload`, clicks or keystrokes to the game client, and never read data from pixels drawn on screen. Looking at files and screenshots is fine; driving the game is input automation, which Blizzard's terms prohibit.
+- Make new frames visible to snapshots: register a mover, or call `ns.Debug.Watch(name, frame)`.
 
 ## Git
 

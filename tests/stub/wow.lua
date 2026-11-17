@@ -257,6 +257,16 @@ function Stub.reset()
     _G.UnitAffectingCombat = unitField("combat", false)
     _G.UnitClassification = unitField("classification", "normal")
     _G.GetRaidTargetIndex = unitField("marker", nil)
+    Stub.timers = {}
+    Stub.screenshots = 0
+    _G.C_Timer = {
+        After = function(_, fn)
+            Stub.timers[#Stub.timers + 1] = fn
+        end,
+    }
+    _G.Screenshot = function()
+        Stub.screenshots = Stub.screenshots + 1
+    end
     Stub.resting = false
     _G.IsResting = function()
         return Stub.resting
@@ -339,6 +349,15 @@ function Stub.isRegistered(event)
 end
 
 --- True if any printed line contains the text.
+--- Run every timer queued with C_Timer.After.
+function Stub.runTimers()
+    local timers = Stub.timers
+    Stub.timers = {}
+    for i = 1, #timers do
+        timers[i]()
+    end
+end
+
 function Stub.printedContains(text)
     for i = 1, #Stub.printed do
         if Stub.printed[i]:find(text, 1, true) then

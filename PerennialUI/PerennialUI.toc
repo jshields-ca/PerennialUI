@@ -16,6 +16,7 @@ Core/DB.lua
 Core/Theme.lua
 Core/Combat.lua
 Compat/Compat.lua
+Core/Debug.lua
 Core/Modules.lua
 Settings/Registry.lua
 UI/Widgets.lua

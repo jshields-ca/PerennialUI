@@ -76,6 +76,10 @@ A season is two accent colours; `Theme.MakePalette(accent, accentAlt)` derives e
 
 Client detection (`isForever`, `isClassicEra`) and `Compat.Number(value, fallback)`, the guard for values the client may hide in combat, with `Flag`, `SetBar` and `SetText` for flags, bars and text. `HideDefault` and `ShowDefault` hide one of the game's own frames and put it back. `Probe` (`/pui api`) reports what the running client supports. Any API that differs between clients gets a wrapper here.
 
+### Debug (`Core/Debug.lua`)
+
+The development feedback loop. With `/pui debug` on, each `/reload` saves a snapshot of every watched frame (movers are watched automatically) and the caught errors into the saved variables, and a screenshot is taken once frames have drawn. Hidden values are saved as the word "hidden". Off by default.
+
 ### Settings (`Settings/Registry.lua`, `Pages.lua`, `Window.lua`)
 
 The registry holds pages of options and is the only code that reads or writes their values. It validates every change, records it in a session history for undo, and answers searches. The window draws whatever the registry describes: a page list (right click pins a page), a search box, a simple/advanced switch and an undo button. Modules get a page by declaring `settings`; the core's own pages are General, Modules, Profiles and History.
