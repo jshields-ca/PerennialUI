@@ -14,4 +14,6 @@ Notable changes for players. The format follows [Keep a Changelog](https://keepa
 - Settings window (`/pui`): pages, search, simple and advanced modes, undo, change history, pinned pages; resizable and movable.
 - Layout mode (`/pui move`): drag handles, grid snap, per-profile positions, right click to reset.
 - Sandbox module (off by default) for trying the foundation in game.
+- Player and target frames: name, level, health and power, class and reaction colours, click to target, right click for the menu. They replace the game's own frames, which come back if you turn the module off. Optional 2D or 3D portrait for each frame, first and last names, and health as a value, a percentage or both.
+- `/pui api` checks what the game client supports, to help with bug reports.
 - `/pui` and `/perennial` with `config`, `undo`, `help`, `move`, `test`, `safe`, `bug`, `modules`, `enable` and `disable`.

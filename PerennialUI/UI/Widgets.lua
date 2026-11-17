@@ -119,11 +119,12 @@ function Widgets.Border(frame, token, square)
 end
 
 --- A glass panel: see-through tinted fill, border and a lit top edge.
---- opts.rail = true adds the accent rail down the left side.
+--- opts.rail = true adds the accent rail down the left side; opts.alpha
+--- overrides how see-through the fill is (0 clear, 1 solid).
 function Widgets.Panel(parent, name, opts)
     opts = opts or {}
     local panel = CreateFrame("Frame", name, parent)
-    Widgets.Fill(panel, opts.token or "bg")
+    Widgets.Fill(panel, opts.token or "bg", nil, opts.alpha)
     Widgets.Border(panel)
 
     local highlight = panel:CreateTexture(nil, "ARTWORK")
@@ -151,6 +152,28 @@ function Widgets.Panel(parent, name, opts)
         end
     end)
     return panel
+end
+
+--- A status bar on a darker track. token is the fill's colour token; change
+--- it later with bar:SetColor(r, g, b). Values are set by the caller, usually
+--- through ns.Compat.SetBar so hidden combat values are handled.
+function Widgets.Bar(parent, token)
+    local bar = CreateFrame("StatusBar", nil, parent)
+    bar:SetStatusBarTexture(Theme.Get("texture.flat"))
+    bar:SetMinMaxValues(0, 1)
+    bar:SetValue(1)
+    bar.track = Widgets.Fill(bar, "track", "BACKGROUND", nil, true)
+    function bar:SetColor(r, g, b)
+        self.color = { r, g, b }
+        self:SetStatusBarColor(r, g, b, 1)
+    end
+    styled(function()
+        if not bar.color then
+            local r, g, b = Theme.Color(token or "health")
+            bar:SetStatusBarColor(r, g, b, 1)
+        end
+    end)
+    return bar
 end
 
 --- A push button. onClick(button, mouseButton) runs inside the safety net.

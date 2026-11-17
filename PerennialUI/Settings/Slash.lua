@@ -140,6 +140,43 @@ Slash.Register("bug", "print a bug report to copy into an issue", function()
     end
 end)
 
+Slash.Register("debug", "for development: record frames and errors on /reload", function()
+    local on = not ns.Debug.IsOn()
+    ns.Debug.SetOn(on)
+    if on then
+        ns.Print("Debug mode is on. /reload now: frames and errors are recorded, and a screenshot is taken.")
+    else
+        ns.Print("Debug mode is off.")
+    end
+end)
+
+Slash.Register("api", "check what this client supports (try it in and out of combat)", function()
+    local report = ns.Compat.Probe()
+    -- Saved so it can be read from the saved variables file after a /reload.
+    local probes = DB.Global().probes
+    if type(probes) ~= "table" then
+        probes = {}
+        DB.Global().probes = probes
+    end
+    probes[report.combat and "combat" or "rest"] = report
+    ns.Print(("Client %s: %d found, %d missing%s."):format(
+        tostring(report.version), report.present, #report.missing, report.combat and " (in combat)" or ""))
+    for i = 1, #report.missing do
+        print("  missing: " .. report.missing[i])
+    end
+    local keys = {}
+    for key in pairs(report.values) do
+        keys[#keys + 1] = key
+    end
+    table.sort(keys)
+    for i = 1, #keys do
+        print("  " .. keys[i] .. ": " .. report.values[keys[i]])
+    end
+    for i = 1, #report.notes do
+        print("  " .. report.notes[i])
+    end
+end)
+
 SLASH_PERENNIALUI1 = "/pui"
 SLASH_PERENNIALUI2 = "/perennial"
 SlashCmdList.PERENNIALUI = Slash.Run

@@ -108,7 +108,18 @@ Call `self:RegisterMover("myframe", frame, { title = "My frame", x = 0, y = -200
 1. **Off means off.** After `OnDisable`, the game's default element is back as it was and the module holds no events, timers or visible frames. `OnDisable` can also run after a failed `OnEnable`, so it must cope with half-built state.
 2. **Handlers go through the module.** Use `events`, `RegisterEvent` and `Listen`. Do not create your own event frame: handlers registered that way bypass the safety net, and one error would no longer be contained.
 3. **Wrap script handlers.** For `OnUpdate`, `OnClick` and similar, pass `ns.Safety.Wrap(self.id, fn)` to `SetScript`.
-4. **Combat values may be hidden.** Health, names and threat can be unreadable in combat. Read them through `ns.Compat.Number(value, fallback)` and decide what the widget shows when it gets the fallback.
+4. **Combat values may be hidden.** Health, names and threat can be unreadable in combat. Never compare, format or branch on a raw value. Use the helpers in `ns.Compat`:
+
+   | Helper | Use |
+   | --- | --- |
+   | `Number(value, fallback)` | A number you want to do maths on or format |
+   | `Flag(value, fallback)` | A true or false you want to branch on |
+   | `SetBar(bar, value, max)` | Fill a status bar; a hidden value is handed to the bar untouched |
+   | `SetText(label, value, fallback)` | Show a name or number; a hidden value is handed to the font string untouched |
+   | `ClassColor(classFile)` | Class colour, or nil |
+   | `HideDefault(key)`, `ShowDefault(key)` | Hide one of the game's own frames (`player`, `target`) and put it back exactly. Call inside `RunWhenSafe` |
+
+   `Modules/UnitFrames` shows all of them in use.
 5. **Protected frames wait for combat to end.** Use secure templates for anything clickable in combat, and `self:RunWhenSafe` to move, show, hide or reconfigure them.
 6. **Style from tokens.** `ns.Theme.Color(...)`, `ns.Theme.Get(...)`, `ns.Theme.Radius()`. Listen for `PUI_THEME_CHANGED` and restyle.
 7. **Settings live in `self.db`.** `self.db` is replaced on a profile switch (the module is restarted), so read it fresh; do not cache the table across `OnDisable`.

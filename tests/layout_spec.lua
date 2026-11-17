@@ -6,6 +6,8 @@ describe("Layout", function()
 
     before_each(function()
         ns, stub = Loader.load()
+        -- These specs are about the core; keep the built-in frames out of the way.
+        ns.Modules.Disable("unitframes")
         Layout = ns.Layout
         frame = _G.CreateFrame("Frame", nil, _G.UIParent)
         frame:SetSize(200, 50)
@@ -201,6 +203,8 @@ describe("Sandbox module", function()
 
     before_each(function()
         ns, stub = Loader.load()
+        -- These specs are about the core; keep the built-in frames out of the way.
+        ns.Modules.Disable("unitframes")
     end)
 
     it("is off until the player turns it on", function()

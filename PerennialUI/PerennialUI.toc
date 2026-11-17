@@ -16,6 +16,7 @@ Core/DB.lua
 Core/Theme.lua
 Core/Combat.lua
 Compat/Compat.lua
+Core/Debug.lua
 Core/Modules.lua
 Settings/Registry.lua
 UI/Widgets.lua
@@ -24,4 +25,5 @@ Settings/Pages.lua
 Settings/Window.lua
 Settings/Slash.lua
 Modules/Sandbox/Sandbox.lua
+Modules/UnitFrames/UnitFrames.lua
 Core/Boot.lua

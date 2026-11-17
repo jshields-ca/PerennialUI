@@ -10,7 +10,7 @@ describe("Settings registry", function()
         changes = {}
         mod = ns.Modules.Register({
             id = "frames",
-            title = "Unit Frames",
+            title = "Raid Frames",
             defaults = { scale = 1, style = "bars", glow = true, debug = false },
             settings = {
                 { type = "header", label = "Look" },
@@ -30,7 +30,7 @@ describe("Settings registry", function()
 
     it("gives a module with settings its own page", function()
         local page = Settings.GetPage("frames")
-        assert.equal("Unit Frames", page.title)
+        assert.equal("Raid Frames", page.title)
         assert.equal(5, #Settings.AllOptions("frames"))
     end)
 
@@ -97,9 +97,10 @@ describe("Settings registry", function()
 
     it("searches labels, descriptions and page titles", function()
         local found = Settings.Search("health")
-        assert.equal(2, #found)
+        assert.equal(4, #found) -- two on the test page, two on the unit frames page
         assert.equal(1, #Settings.Search("HEALTH glow"))
-        assert.equal(4, #Settings.Search("unit frames")) -- three options plus the Modules page toggle
+        -- three options, the Modules page toggle, and "Raid marker" on the unit frames page
+        assert.equal(5, #Settings.Search("raid frames"))
         assert.equal(0, #Settings.Search("debug"))
         Settings.SetAdvanced(true)
         assert.equal(1, #Settings.Search("debug"))
@@ -114,9 +115,9 @@ describe("Settings registry", function()
             end
             return list
         end
-        assert.same({ "general", "modules", "profiles", "sandbox", "frames", "history" }, ids())
+        assert.same({ "general", "modules", "profiles", "frames", "sandbox", "unitframes", "history" }, ids())
         Settings.SetPinned("history", true)
-        assert.same({ "history", "general", "modules", "profiles", "sandbox", "frames" }, ids())
+        assert.same({ "history", "general", "modules", "profiles", "frames", "sandbox", "unitframes" }, ids())
         Settings.SetPinned("history", false)
         assert.equal("general", ids()[1])
     end)
@@ -202,7 +203,7 @@ describe("Settings registry", function()
             assert.is_truthy(Settings.Info("history", "changes"):find("No settings", 1, true))
             Settings.Set("frames", "glow", false)
             local text = Settings.Info("history", "changes")
-            assert.is_truthy(text:find("Unit Frames: Low health glow  on -> off", 1, true))
+            assert.is_truthy(text:find("Raid Frames: Low health glow  on -> off", 1, true))
         end)
     end)
 
@@ -239,7 +240,7 @@ describe("Settings registry", function()
         end)
 
         it("searches and returns to the page when the search is cleared", function()
-            assert.equal(2, Window.Search("health"))
+            assert.equal(4, Window.Search("health"))
             assert.equal(0, Window.Search("zzzz"))
             assert.equal(0, Window.Search(""))
             noErrors()

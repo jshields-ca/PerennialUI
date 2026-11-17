@@ -24,25 +24,26 @@ Status: in progress.
 | Module registry: register, enable, disable, pause, per-module settings | Done, tested | |
 | Saved variables: schema migrations, defaults, profiles, share strings | Done, tested | |
 | Theme tokens and seasonal palettes | Done, tested | Dark season-tinted glass; Sora, DM Sans and DM Mono bundled |
-| Rounded panels, accent rail and bundled fonts drawn in the client | Written, **not yet run in game** | Uses nine-slice textures; falls back to square corners and client fonts if the client refuses them |
+| Rounded panels, accent rail and bundled fonts drawn in the client | Done, run in game | Uses nine-slice textures; falls back to square corners and client fonts if the client refuses them |
 | Combat lockdown queue | Done, tested | |
-| Compat layer and hidden-value guard | Done, tested against a stub | **Needs verifying in the live client** |
+| Compat layer and hidden-value guard | Done, run in game | 2026-11-15: bars and text accept hidden values, in and out of combat |
 | Slash commands: config, help, move, test, safe, bug, undo, modules, enable, disable | Done, tested | |
-| First in-game load on client 1.60.1 | **To do** | Nothing has been run in the game yet |
-| API reference generated from the live client (`/apiexport`) into `tools/api/` | To do | Needed before any frame work |
-| Widget kit: panel, button, checkbox, slider, picker, scroll area, text input, all themed | Written, **not yet run in game** | The picker cycles through choices; a real dropdown list and rounded corners are still to do |
-| Settings window: resizable, searchable, simple/advanced, pinned pages | Written, **not yet run in game** | Logic tested against the stub. Pages come from each module's `settings` declaration |
+| First in-game load on client 1.60.1 | Done | 2026-11-14: settings window, layout mode, sandbox and the glass look |
+| Debug mode: `/pui debug` records frames and errors on `/reload` and takes a screenshot | Written, **not yet run in game** | The feedback loop for development: results are read from the saved variables file and the Screenshots folder |
+| Client check: `/pui api` reports which client functions exist and which values are hidden | Done, run in game | 2026-11-15: all 36 checks found. Current health and power are hidden all the time; a target's maximum health is hidden in combat; names, levels and the player's maximum health are readable |
+| Widget kit: panel, button, checkbox, slider, picker, scroll area, text input, status bar, all themed | Done, run in game | The picker cycles through choices; a real dropdown list is still to do |
+| Settings window: resizable, searchable, simple/advanced, pinned pages | Done, run in game | Pages come from each module's `settings` declaration |
 | Settings undo and change history | Done, tested | Session only; `/pui undo` and the History page |
 | Profile management in the window: create, copy, delete, import, export | To do | The window can only switch profile today |
-| Layout mode: drag handles, grid snap, saved positions, combat queue | Written, **not yet run in game** | Logic tested against the stub. Keyboard nudging is still to do |
+| Layout mode: drag handles, grid snap, saved positions, combat queue | Done, run in game | Keyboard nudging is still to do |
 | Mover registry so any module can make its frame draggable | Done, tested | `self:RegisterMover` |
-| Sandbox module: movable panel, settings page, self-break button | Written, **not yet run in game** | The deliberately broken test module for the phase gate. `/pui enable sandbox` |
+| Sandbox module: movable panel, settings page, self-break button | Done, run in game | The deliberately broken test module for the phase gate. `/pui enable sandbox` |
 | Test mode plumbing (sample units and data) | To do | |
 | Bug report window (copyable text) and debug/capability view | To do | `/pui bug` prints to chat today |
 | First-login setup wizard: season, frame and nameplate style, placement | To do | Last, once there is something to place |
 | Profile auto-switch by spec | To do | Check what "spec" means on Forever first |
 | Share-string compression | To do | Vendor LibDeflate (zlib licence) if strings get long |
-| Proof module: player and target frames from theme tokens | To do | Closes the phase |
+| Proof module: player and target frames from theme tokens | Done, run in game | `Modules/UnitFrames`. 2026-11-15: clicks, the unit menu, bars and numbers in combat, and the game's frames coming back when it is turned off. Percent health text confirmed 2026-11-16. Last names confirmed 2026-11-16. Health numbers above the bar confirmed 2026-11-16. 2D and 3D portraits draw (2026-11-16). The larger layout and 3D framing confirmed 2026-11-16. Name-row status items are **not yet seen in game** |
 
 ## Phase 1: Daily driver
 
@@ -59,6 +60,19 @@ Status: in progress.
 | Foundation | Layout presets that also rearrange frames (our own names: Mender, Vanguard, Wayfarer, and so on; controller layout is Forever only) |
 
 Decide before starting frames: build unit frames on oUF (MIT) or our own. Test oUF under Forever's hidden combat values first.
+
+### Unit frame elements
+
+Each frame has named places that elements plug into, each element with its own off switch. The same places are what the frame designer will rearrange, and they carry over to pet, focus and party frames.
+
+| Place | Player | Target | State |
+| --- | --- | --- | --- |
+| Portrait chip | 2D or 3D portrait | Same | Built |
+| Name row | Level, leader or assistant, role, in combat, resting | Level, elite/rare/boss tag, raid marker | Layout confirmed in game 2026-11-16. Leader, role and combat use the game's own icons (names **not yet verified**), with letters as the fallback. Status items not yet seen in a group |
+| Frame edge | Glow when you have aggro | Coloured by your threat on it | To do. `/pui api` reports whether threat is readable |
+| Row above or below | Buffs and debuffs | Buffs and debuffs, yours highlighted | To do |
+| Attached under the frame | Cast bar, class resources | Cast bar, target-of-target | To do |
+| Over the health bar | Incoming heals and shields | Same | To do |
 
 ## Phase 2: Combat
 
@@ -136,8 +150,10 @@ Classic Era, Hardcore and Season of Discovery use a different API. The shims go 
 
 ## Open questions
 
-- **Unit frames:** oUF or our own? Needs a test under hidden combat values.
-- **Hidden values:** confirm the client's predicate for hidden values and exactly which fields are hidden, from the live `/api` export. `Compat.IsHidden` currently assumes `issecretvalue`.
+- **Unit frames:** the player and target frames are our own code. Before party and raid frames, decide whether to keep going that way or move to oUF, now that our own frames work under hidden values (2026-11-15).
+- **Unit frame events:** the frames listen to unit events for every unit and ignore the ones they do not show. Switch to per-unit registration if that shows up in raids.
+- **Hidden values:** `issecretvalue` is confirmed. Text can be built from a hidden number with `string.format` (confirmed 2026-11-16). Still open: short forms such as 12.3k for hidden numbers.
+- **Last names:** `UnitName` returns the first name and then the last name (confirmed for the player, 2026-11-16). Unit frames show both by default. Other players show their last name too. Still open: what `C_PlayerInfo.ShouldDisplaySurname` is for.
 - **`/pui`:** check that no popular addon already uses this slash command.
 - **Glass details:** a top-to-bottom gradient inside panels and a softer drop shadow are in the mock-ups but not yet drawn in game.
 - **Non-Latin fonts:** Russian, Korean and Chinese clients fall back to the game's fonts. Pick open fonts for those scripts later.

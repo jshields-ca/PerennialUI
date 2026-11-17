@@ -70,7 +70,9 @@ function Layout.GetPosition(id)
     if not mover then
         return nil
     end
-    local position = saved()[id]
+    -- Read without creating the table, so looking never changes the profile.
+    local layout = DB.Profile().layout
+    local position = type(layout) == "table" and layout[id]
     if type(position) == "table" and tonumber(position.x) and tonumber(position.y) then
         return position.x, position.y
     end
@@ -278,6 +280,7 @@ function Layout.Register(owner, id, frame, opts)
     }
     movers[id] = mover
     order[#order + 1] = mover
+    ns.Debug.Watch(id, frame)
     Layout.Apply(id)
     if Layout.IsActive() then
         refreshOverlay()
