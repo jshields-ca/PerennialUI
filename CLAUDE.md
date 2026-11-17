@@ -43,6 +43,7 @@ docs/                   ARCHITECTURE.md, MODULES.md, ROADMAP.md
 - Features are modules registered with `ns.Modules.Register` (contract in `docs/MODULES.md`). Do not add features to the core.
 - Modules subscribe with `self:RegisterEvent` / `self:Listen` so handlers run inside the safety net. Never create a private event frame in a module.
 - No hard-coded colours, spacing or fonts: use `ns.Theme`.
+- Use the game's own icons, textures and UI calls before making custom ones (leader crown, role icons, raid markers). Players already know them. Reach them through `ns.Compat` with a plain fallback, and check the names with `/pui api`. Custom art is the last resort.
 - Saved data goes through `ns.DB`; a change to the saved layout needs a bump of `DB.SCHEMA` and a migration with a test.
 - Every module has an off switch, and off means the default Blizzard element is left as it was.
 - Tests cannot check client API calls: the stub ignores unknown frame methods. Say when UI code has not been run in the game.

@@ -102,7 +102,7 @@ local UnitFrames = ns.Modules.Register({
         },
         {
             key = "showCombat", type = "toggle", label = "Combat and resting",
-            desc = "A red dot in combat, zz while resting.",
+            desc = "A mark while in combat, zz while resting.",
         },
         { key = "showTag", type = "toggle", label = "Elite, rare and boss" },
         { key = "showMarker", type = "toggle", label = "Raid marker" },
@@ -297,14 +297,17 @@ function UnitFrames:Build(unit)
     frame.leaderIcon = skin:CreateTexture(nil, "OVERLAY")
     frame.leaderIcon:SetSize(14, 14)
     frame.rest = Widgets.Text(skin, "zz", "sm", "textMuted", "number")
+    -- In combat: the game's crossed swords, or a red dot without them.
     frame.combat = skin:CreateTexture(nil, "OVERLAY")
     frame.combat:SetSize(6, 6)
     frame.combat:SetColorTexture(Theme.Color("hostile"))
+    frame.combatIcon = skin:CreateTexture(nil, "OVERLAY")
+    frame.combatIcon:SetSize(14, 14)
     frame.marker = skin:CreateTexture(nil, "OVERLAY")
     frame.marker:SetSize(14, 14)
     frame.status = {
         frame.level, frame.tag, frame.roleIcon, frame.role, frame.leaderIcon, frame.leader,
-        frame.rest, frame.combat, frame.marker,
+        frame.rest, frame.combatIcon, frame.combat, frame.marker,
     }
     for i = 1, #frame.status do
         frame.status[i].on = false
@@ -460,7 +463,9 @@ local function renderStatus(frame, state, db)
     frame.leader:SetText(leader and "L" or (assistant and "A" or ""))
 
     local combat = Compat.Flag(state.combat, false)
-    frame.combat.on = db.showCombat and combat
+    local showCombat = db.showCombat and combat
+    frame.combatIcon.on = showCombat and Compat.SetIcon(frame.combatIcon, "combat")
+    frame.combat.on = showCombat and not frame.combatIcon.on
     frame.rest.on = db.showCombat and not combat and Compat.Flag(state.resting, false)
 
     -- type() is safe on a hidden value; comparing it to nil is not.

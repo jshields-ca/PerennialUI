@@ -150,12 +150,13 @@ local ICONS = {
     TANK = { "UI-LFG-RoleIcon-Tank", "roleicon-tiny-tank", "groupfinder-icon-role-large-tank" },
     HEALER = { "UI-LFG-RoleIcon-Healer", "roleicon-tiny-healer", "groupfinder-icon-role-large-heal" },
     DAMAGER = { "UI-LFG-RoleIcon-DPS", "roleicon-tiny-dps", "groupfinder-icon-role-large-dps" },
+    combat = { "UI-HUD-UnitFrame-Player-CombatIcon" },
 }
-local ICON_KINDS = { "leader", "assistant", "TANK", "HEALER", "DAMAGER" }
+local ICON_KINDS = { "leader", "assistant", "TANK", "HEALER", "DAMAGER", "combat" }
 local iconFound = {}
 
---- The name of the game's icon for leader, assistant, TANK, HEALER or
---- DAMAGER, or nil when this client has none of the names we know.
+--- The name of the game's icon for leader, assistant, TANK, HEALER,
+--- DAMAGER or combat, or nil when this client has none of the names we know.
 function Compat.IconName(kind)
     if iconFound[kind] == nil then
         iconFound[kind] = false

@@ -67,7 +67,7 @@ Each frame has named places that elements plug into, each element with its own o
 | Place | Player | Target | State |
 | --- | --- | --- | --- |
 | Portrait chip | 2D or 3D portrait | Same | Built |
-| Name row | Level, leader or assistant, role, in combat, resting | Level, elite/rare/boss tag, raid marker | Layout confirmed in game 2026-11-16. Leader and role use the game's own icons (names **not yet verified**), with letters as the fallback. Status items not yet seen in a group |
+| Name row | Level, leader or assistant, role, in combat, resting | Level, elite/rare/boss tag, raid marker | Layout confirmed in game 2026-11-16. Leader, role and combat use the game's own icons (names **not yet verified**), with letters as the fallback. Status items not yet seen in a group |
 | Frame edge | Glow when you have aggro | Coloured by your threat on it | To do. `/pui api` reports whether threat is readable |
 | Row above or below | Buffs and debuffs | Buffs and debuffs, yours highlighted | To do |
 | Attached under the frame | Cast bar, class resources | Cast bar, target-of-target | To do |

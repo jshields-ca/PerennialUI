@@ -334,13 +334,17 @@ describe("Unit frames", function()
         it("uses the game's own icons where the client has them", function()
             _G.C_Texture = {
                 GetAtlasInfo = function(name)
-                    return (name == "UI-LFG-RoleIcon-Healer" or name == "groupfinder-icon-leader") and {} or nil
+                    local known = name == "UI-LFG-RoleIcon-Healer" or name == "groupfinder-icon-leader"
+                        or name == "UI-HUD-UnitFrame-Player-CombatIcon"
+                    return known and {} or nil
                 end,
             }
             local player = stub.units.player
-            player.leader, player.role = true, "HEALER"
+            player.leader, player.role, player.combat = true, "HEALER", true
             stub.fire("GROUP_ROSTER_UPDATE")
             local frame = frames.player
+            assert.is_true(frame.combatIcon.on)
+            assert.is_false(frame.combat.on)
             assert.is_true(frame.roleIcon.on)
             assert.is_false(frame.role.on)
             assert.equal("UI-LFG-RoleIcon-Healer", frame.roleIcon.atlas)
